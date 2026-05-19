@@ -1,0 +1,108 @@
+<Window x:Class="WindowFilterTray.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Window Filter Tray"
+        Width="980"
+        Height="680"
+        MinWidth="760"
+        MinHeight="520">
+  <DockPanel Margin="16">
+    <Border DockPanel.Dock="Top" BorderBrush="#D6D8DE" BorderThickness="0,0,0,1" Padding="0,0,0,14">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="필터링 모드" FontSize="18" FontWeight="SemiBold" />
+          <Slider x:Name="ModeSlider"
+                  Minimum="0"
+                  Maximum="3"
+                  TickFrequency="1"
+                  IsSnapToTickEnabled="True"
+                  Width="420"
+                  HorizontalAlignment="Left"
+                  ValueChanged="ModeSlider_ValueChanged" />
+          <TextBlock x:Name="ModeDescriptionText" Margin="0,6,0,0" FontWeight="SemiBold" />
+          <TextBlock Text="시스템 및 보안 관련 창은 모든 단계에서 자동으로 제외됩니다."
+                     Margin="0,6,0,0"
+                     Foreground="#555" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <CheckBox x:Name="PauseCheckBox"
+                    Content="전체 차단 끄기"
+                    Margin="0,0,0,8"
+                    Checked="PauseCheckBox_Changed"
+                    Unchecked="PauseCheckBox_Changed" />
+          <CheckBox x:Name="AutoStartCheckBox"
+                    Content="Windows 시작 시 실행"
+                    Checked="AutoStartCheckBox_Changed"
+                    Unchecked="AutoStartCheckBox_Changed" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Margin="0,14,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="1.15*" />
+        <ColumnDefinition Width="1*" />
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*" />
+        <RowDefinition Height="180" />
+      </Grid.RowDefinitions>
+
+      <GroupBox Header="규칙" Margin="0,0,10,10">
+        <DockPanel Margin="8">
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="선택한 규칙 편집" Width="130" Margin="0,0,8,0" Click="EditRule_Click" />
+            <Button Content="삭제" Width="80" Click="DeleteRule_Click" />
+          </StackPanel>
+          <ListView x:Name="RulesList">
+            <ListView.View>
+              <GridView>
+                <GridViewColumn Header="이름" DisplayMemberBinding="{Binding DisplayName}" Width="180" />
+                <GridViewColumn Header="동작" DisplayMemberBinding="{Binding Action}" Width="90" />
+                <GridViewColumn Header="프로세스" DisplayMemberBinding="{Binding Matcher.ProcessName}" Width="130" />
+                <GridViewColumn Header="클래스" DisplayMemberBinding="{Binding Matcher.WindowClass}" Width="170" />
+              </GridView>
+            </ListView.View>
+          </ListView>
+        </DockPanel>
+      </GroupBox>
+
+      <GroupBox Header="최근 감지된 창" Grid.Column="1" Margin="0,0,0,10">
+        <DockPanel Margin="8">
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="창 선택" Width="90" Margin="0,0,8,0" Click="Picker_Click" />
+            <Button Content="선택한 창으로 규칙 만들기" Width="170" Click="CreateRuleFromRecent_Click" />
+          </StackPanel>
+          <ListView x:Name="RecentList">
+            <ListView.View>
+              <GridView>
+                <GridViewColumn Header="시간" DisplayMemberBinding="{Binding SeenAt}" Width="130" />
+                <GridViewColumn Header="창" DisplayMemberBinding="{Binding Title}" Width="220" />
+                <GridViewColumn Header="프로세스" DisplayMemberBinding="{Binding ProcessName}" Width="120" />
+              </GridView>
+            </ListView.View>
+          </ListView>
+        </DockPanel>
+      </GroupBox>
+
+      <GroupBox Header="매칭 로그" Grid.Row="1" Grid.ColumnSpan="2">
+        <ListView x:Name="LogList" Margin="8">
+          <ListView.View>
+            <GridView>
+              <GridViewColumn Header="시간" DisplayMemberBinding="{Binding At}" Width="130" />
+              <GridViewColumn Header="규칙" DisplayMemberBinding="{Binding RuleName}" Width="180" />
+              <GridViewColumn Header="프로세스" DisplayMemberBinding="{Binding ProcessName}" Width="120" />
+              <GridViewColumn Header="점수" DisplayMemberBinding="{Binding Score}" Width="60" />
+              <GridViewColumn Header="동작" DisplayMemberBinding="{Binding Action}" Width="90" />
+              <GridViewColumn Header="사유" DisplayMemberBinding="{Binding Reason}" Width="220" />
+            </GridView>
+          </ListView.View>
+        </ListView>
+      </GroupBox>
+    </Grid>
+  </DockPanel>
+</Window>

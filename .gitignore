@@ -1,0 +1,15 @@
+.vs/
+.idea/
+.vscode/
+
+bin/
+obj/
+
+.dotnet/
+dotnet-install.ps1
+dotnet-install.log
+
+*.user
+*.suo
+*.tmp
+*.log

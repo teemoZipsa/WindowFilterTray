@@ -1,0 +1,85 @@
+<Window x:Class="WindowFilterTray.Views.RuleEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="규칙 편집"
+        Width="560"
+        Height="620"
+        MinWidth="520"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner">
+  <DockPanel Margin="16">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+      <Button Content="취소" Width="90" Margin="0,0,8,0" IsCancel="True" />
+      <Button Content="저장" Width="100" IsDefault="True" Click="Save_Click" />
+    </StackPanel>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <TextBlock Text="규칙 이름" FontWeight="SemiBold" />
+        <TextBox x:Name="DisplayNameBox" Margin="0,4,0,12" />
+
+        <GroupBox Header="캡처된 창" Margin="0,0,0,12">
+          <Grid Margin="8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="110" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="제목" FontWeight="SemiBold" />
+            <TextBlock x:Name="CapturedTitleText" Grid.Column="1" TextWrapping="Wrap" />
+            <TextBlock Text="프로세스" Grid.Row="1" FontWeight="SemiBold" />
+            <TextBlock x:Name="CapturedProcessText" Grid.Row="1" Grid.Column="1" />
+            <TextBlock Text="클래스" Grid.Row="2" FontWeight="SemiBold" />
+            <TextBlock x:Name="CapturedClassText" Grid.Row="2" Grid.Column="1" />
+            <TextBlock Text="크기/위치" Grid.Row="3" FontWeight="SemiBold" />
+            <TextBlock x:Name="CapturedRectText" Grid.Row="3" Grid.Column="1" />
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="매칭 조건" Margin="0,0,0,12">
+          <StackPanel Margin="8">
+            <CheckBox x:Name="UseProcessCheckBox" Content="프로세스 이름 사용 (강력 추천)" Margin="0,0,0,6" />
+            <TextBox x:Name="ProcessNameBox" Margin="20,0,0,10" />
+            <CheckBox x:Name="UseClassCheckBox" Content="창 클래스 사용" Margin="0,0,0,6" />
+            <TextBox x:Name="WindowClassBox" Margin="20,0,0,10" />
+            <CheckBox x:Name="UseTitleCheckBox" Content="창 제목 포함 문자열 사용" Margin="0,0,0,6" />
+            <TextBox x:Name="TitleContainsBox" Margin="20,0,0,10" />
+            <CheckBox x:Name="UseSizeCheckBox" Content="크기 사용" Margin="0,0,0,6" />
+            <CheckBox x:Name="UsePositionCheckBox" Content="위치 사용" />
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="동작" Margin="0,0,0,12">
+          <Grid Margin="8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="처리" VerticalAlignment="Center" />
+            <ComboBox x:Name="ActionComboBox" Grid.Column="1" Margin="0,0,0,8" />
+            <TextBlock Text="빈도 제한" Grid.Row="1" VerticalAlignment="Center" />
+            <ComboBox x:Name="FrequencyModeComboBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" />
+            <TextBlock Text="허용 노출 수" Grid.Row="2" VerticalAlignment="Center" />
+            <TextBox x:Name="MaxImpressionsBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" />
+            <CheckBox x:Name="DetectOnlyCheckBox"
+                      Grid.Row="3"
+                      Grid.ColumnSpan="2"
+                      Content="처음에는 감지만 하기"
+                      IsChecked="True" />
+          </Grid>
+        </GroupBox>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>
