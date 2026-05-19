@@ -46,7 +46,7 @@ public sealed class RuleEngine
         if (mode == FilteringMode.Off)
         {
             TouchStats(best.Rule, blocked: false);
-            return MatchDecision.Match(best.Rule, best.Score, WindowActionType.Ignore, 0, "꺼짐 모드");
+            return MatchDecision.Match(best.Rule, best.Score, WindowActionType.Ignore, 0, "구경만 모드");
         }
 
         if (best.Score < Math.Max(best.Rule.Matcher.MinScore, config.MinScore))
@@ -61,7 +61,7 @@ public sealed class RuleEngine
 
         var shouldBlock = ShouldBlockByFrequency(best.Rule);
         var effectiveAction = shouldBlock ? best.Rule.Action : WindowActionType.Ignore;
-        var reason = shouldBlock ? "차단 조건 통과" : "빈도 제한 내 노출";
+        var reason = shouldBlock ? "정리 조건 통과" : "처음에는 그냥 보여둠";
         var graceMs = Math.Max(best.Rule.GraceMs, config.GraceMs);
 
         return MatchDecision.Match(best.Rule, best.Score, effectiveAction, graceMs, reason);

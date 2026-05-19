@@ -7,6 +7,7 @@ public partial class RuleEditorWindow : Window
 {
     private readonly WindowSnapshot? _snapshot;
     private readonly WindowRule? _originalRule;
+    private FrequencyCapMode _frequencyMode = FrequencyCapMode.PerDay;
 
     public RuleEditorWindow(WindowSnapshot snapshot, FilteringMode mode)
     {
@@ -28,8 +29,13 @@ public partial class RuleEditorWindow : Window
 
     private void PopulateCombos()
     {
-        ActionComboBox.ItemsSource = Enum.GetValues<WindowActionType>();
-        FrequencyModeComboBox.ItemsSource = Enum.GetValues<FrequencyCapMode>();
+        ActionComboBox.ItemsSource = new[]
+        {
+            new ActionOption("작게 내리기", WindowActionType.Minimize),
+            new ActionOption("숨기기", WindowActionType.HideWindow),
+            new ActionOption("닫기", WindowActionType.CloseWindow),
+            new ActionOption("기록만", WindowActionType.Ignore)
+        };
     }
 
     private void LoadFromSnapshot(WindowSnapshot snapshot, FilteringMode mode)
@@ -51,12 +57,10 @@ public partial class RuleEditorWindow : Window
         ProcessNameBox.Text = snapshot.ProcessName;
         WindowClassBox.Text = snapshot.ClassName;
         TitleContainsBox.Text = snapshot.Title;
-        ActionComboBox.SelectedItem = WindowActionType.CloseWindow;
+        SelectAction(WindowActionType.Minimize);
 
-        var frequency = mode == FilteringMode.Strong ? FrequencyCapMode.None : FrequencyCapMode.PerDay;
-        FrequencyModeComboBox.SelectedItem = frequency;
+        _frequencyMode = mode == FilteringMode.Strong ? FrequencyCapMode.None : FrequencyCapMode.PerDay;
         MaxImpressionsBox.Text = "1";
-        DetectOnlyCheckBox.IsChecked = true;
     }
 
     private void LoadFromRule(WindowRule rule)
@@ -77,39 +81,34 @@ public partial class RuleEditorWindow : Window
         ProcessNameBox.Text = rule.Matcher.ProcessName;
         WindowClassBox.Text = rule.Matcher.WindowClass;
         TitleContainsBox.Text = rule.Matcher.TitleContains ?? string.Empty;
-        ActionComboBox.SelectedItem = rule.Action;
-        FrequencyModeComboBox.SelectedItem = rule.FrequencyCap.Mode;
+        SelectAction(rule.Action);
+        _frequencyMode = rule.FrequencyCap.Mode;
         MaxImpressionsBox.Text = rule.FrequencyCap.MaxImpressions.ToString();
-        DetectOnlyCheckBox.IsChecked = rule.Action == WindowActionType.Ignore;
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
         if (!int.TryParse(MaxImpressionsBox.Text, out var maxImpressions) || maxImpressions < 0)
         {
-            System.Windows.MessageBox.Show("허용 노출 수는 0 이상의 숫자여야 합니다.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+            System.Windows.MessageBox.Show("처음 몇 번 보여둘지는 0 이상의 숫자로 입력해 주세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        var action = (WindowActionType)(ActionComboBox.SelectedItem ?? WindowActionType.CloseWindow);
-        if (DetectOnlyCheckBox.IsChecked == true)
-        {
-            action = WindowActionType.Ignore;
-        }
+        var action = (ActionComboBox.SelectedItem as ActionOption)?.Action ?? WindowActionType.Minimize;
 
         var rect = _snapshot?.Rect;
         Rule = new WindowRule
         {
             Id = _originalRule?.Id ?? $"rule-{Guid.NewGuid():N}",
             CreatedAt = _originalRule?.CreatedAt ?? DateTimeOffset.UtcNow,
-            DisplayName = string.IsNullOrWhiteSpace(DisplayNameBox.Text) ? "사용자 규칙" : DisplayNameBox.Text.Trim(),
+            DisplayName = string.IsNullOrWhiteSpace(DisplayNameBox.Text) ? "정리할 창" : DisplayNameBox.Text.Trim(),
             Enabled = _originalRule?.Enabled ?? true,
             Action = action,
             GraceMs = _originalRule?.GraceMs ?? 1000,
             ThumbnailPath = _originalRule?.ThumbnailPath,
             FrequencyCap = new FrequencyCap
             {
-                Mode = (FrequencyCapMode)(FrequencyModeComboBox.SelectedItem ?? FrequencyCapMode.PerDay),
+                Mode = _frequencyMode,
                 MaxImpressions = maxImpressions
             },
             Matcher = new RuleMatcher
@@ -130,4 +129,13 @@ public partial class RuleEditorWindow : Window
 
         DialogResult = true;
     }
+
+    private void SelectAction(WindowActionType action)
+    {
+        ActionComboBox.SelectedItem = ActionComboBox.Items
+            .OfType<ActionOption>()
+            .FirstOrDefault(option => option.Action == action);
+    }
+
+    private sealed record ActionOption(string Label, WindowActionType Action);
 }

@@ -16,4 +16,14 @@ public sealed class ActionExecutor
             _ => false
         };
     }
+
+    public bool Undo(IntPtr hwnd, WindowActionType action)
+    {
+        return action switch
+        {
+            WindowActionType.HideWindow => NativeMethods.ShowWindow(hwnd, NativeMethods.SW_SHOW),
+            WindowActionType.Minimize => NativeMethods.ShowWindow(hwnd, NativeMethods.SW_RESTORE),
+            _ => false
+        };
+    }
 }

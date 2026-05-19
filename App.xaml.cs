@@ -24,6 +24,7 @@ public partial class App : System.Windows.Application
     private ThumbnailService _thumbnailService = null!;
     private StartupService _startupService = null!;
     private MainWindow? _mainWindow;
+    private ActionToastWindow? _toastWindow;
 
     public ObservableCollection<WindowRule> Rules { get; } = [];
     public ObservableCollection<WindowSnapshot> RecentWindows { get; } = [];
@@ -48,7 +49,7 @@ public partial class App : System.Windows.Application
         _mutex = new Mutex(initiallyOwned: true, "WindowFilterTray.SingleInstance", out var created);
         if (!created)
         {
-            System.Windows.MessageBox.Show("이미 실행 중입니다.", "Window Filter Tray", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("이미 실행 중입니다.", Branding.AppDisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
@@ -246,6 +247,7 @@ public partial class App : System.Windows.Application
         if (executed && action != WindowActionType.Ignore)
         {
             _ruleEngine.MarkBlocked(decision.Rule);
+            ShowActionToast(snapshot, action);
         }
 
         Logs.Add(new MatchLogEntry
@@ -265,6 +267,22 @@ public partial class App : System.Windows.Application
         }
 
         SaveAll();
+    }
+
+    private void ShowActionToast(WindowSnapshot snapshot, WindowActionType action)
+    {
+        _toastWindow?.Close();
+        Action? undo = action is WindowActionType.HideWindow or WindowActionType.Minimize
+            ? () => _actionExecutor.Undo(snapshot.HWnd, action)
+            : null;
+
+        _toastWindow = new ActionToastWindow(
+            snapshot.Title,
+            action,
+            undo,
+            ShowMainWindow);
+        _toastWindow.Closed += (_, _) => _toastWindow = null;
+        _toastWindow.Show();
     }
 
     private void AddRecentWindow(WindowSnapshot snapshot)
@@ -300,8 +318,8 @@ public partial class App : System.Windows.Application
     {
         _trayIcon = new Forms.NotifyIcon
         {
-            Text = "Window Filter Tray",
-            Icon = SystemIcons.Application,
+            Text = Branding.RunningText,
+            Icon = LoadTrayIcon(),
             Visible = true
         };
         _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(ShowMainWindow);
@@ -316,8 +334,8 @@ public partial class App : System.Windows.Application
         }
 
         _trayIcon.Text = Settings.IsPaused || Settings.FilteringMode == FilteringMode.Off
-            ? "Window Filter Tray - 꺼짐"
-            : "Window Filter Tray - 실행 중";
+            ? Branding.PausedText
+            : Branding.RunningText;
         _trayIcon.ContextMenuStrip = BuildTrayMenu();
     }
 
@@ -329,15 +347,15 @@ public partial class App : System.Windows.Application
         open.Click += (_, _) => Dispatcher.Invoke(ShowMainWindow);
         menu.Items.Add(open);
 
-        var pause = new Forms.ToolStripMenuItem(Settings.IsPaused ? "전체 차단 켜기" : "전체 차단 끄기");
+        var pause = new Forms.ToolStripMenuItem(Settings.IsPaused ? "다시 시작" : "잠시 멈춤");
         pause.Click += (_, _) => Dispatcher.Invoke(() => SetPaused(!Settings.IsPaused));
         menu.Items.Add(pause);
 
-        var picker = new Forms.ToolStripMenuItem("창 선택");
+        var picker = new Forms.ToolStripMenuItem("창 고르기");
         picker.Click += (_, _) => Dispatcher.Invoke(StartPicker);
         menu.Items.Add(picker);
 
-        var recent = new Forms.ToolStripMenuItem("최근 감지된 창");
+        var recent = new Forms.ToolStripMenuItem("최근 뜬 창");
         foreach (var snapshot in RecentWindows.Take(10))
         {
             var item = new Forms.ToolStripMenuItem(snapshot.Summary) { Tag = snapshot };
@@ -358,6 +376,18 @@ public partial class App : System.Windows.Application
         menu.Items.Add(exit);
 
         return menu;
+    }
+
+    private static Icon LoadTrayIcon()
+    {
+        try
+        {
+            return Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? string.Empty) ?? SystemIcons.Application;
+        }
+        catch
+        {
+            return SystemIcons.Application;
+        }
     }
 
     private void ExitApplication()

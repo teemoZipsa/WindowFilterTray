@@ -14,7 +14,9 @@ internal static class NativeMethods
     public const int WM_CLOSE = 0x0010;
     public const int WM_HOTKEY = 0x0312;
     public const int SW_HIDE = 0;
+    public const int SW_SHOW = 5;
     public const int SW_MINIMIZE = 6;
+    public const int SW_RESTORE = 9;
     public const int GA_ROOT = 2;
 
     public const uint MOD_ALT = 0x0001;

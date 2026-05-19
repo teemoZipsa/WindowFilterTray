@@ -10,4 +10,13 @@ public sealed class MatchLogEntry
     public int Score { get; set; }
     public string Action { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
+
+    public string DisplayAction => Action switch
+    {
+        nameof(WindowActionType.Minimize) => "작게 내림",
+        nameof(WindowActionType.HideWindow) => "숨김",
+        nameof(WindowActionType.CloseWindow) => "닫음",
+        nameof(WindowActionType.Ignore) => "기록만",
+        _ => Action
+    };
 }

@@ -19,7 +19,7 @@
             CornerRadius="6">
       <TextBlock Foreground="White"
                  FontWeight="SemiBold"
-                 Text="규칙으로 등록할 창을 클릭하세요. 취소하려면 Esc를 누르세요." />
+                 Text="앞으로 정리할 창을 클릭하세요. 취소하려면 Esc를 누르세요." />
     </Border>
   </Grid>
 </Window>
