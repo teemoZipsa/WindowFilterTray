@@ -122,6 +122,7 @@ public partial class MainWindow : Window
             _ => string.Empty
         };
         UpdateModeLabels(mode);
+        UpdateModeTrack(mode);
     }
 
     private void UpdateModeLabels(FilteringMode mode)
@@ -138,6 +139,31 @@ public partial class MainWindow : Window
         label.Foreground = selected
             ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 95, 170))
             : new SolidColorBrush(System.Windows.Media.Color.FromRgb(85, 85, 85));
+    }
+
+    private void UpdateModeTrack(FilteringMode mode)
+    {
+        const double start = 8;
+        const double end = 412;
+        const double step = (end - start) / 3;
+        var value = (int)mode;
+        ModeFillBar.Width = Math.Max(0, value * step);
+
+        SetMarker(ModeMarkerOff, value >= 0, mode == FilteringMode.Off);
+        SetMarker(ModeMarkerLow, value >= 1, mode == FilteringMode.Low);
+        SetMarker(ModeMarkerOptimal, value >= 2, mode == FilteringMode.Optimal);
+        SetMarker(ModeMarkerStrong, value >= 3, mode == FilteringMode.Strong);
+    }
+
+    private static void SetMarker(System.Windows.Shapes.Rectangle marker, bool filled, bool selected)
+    {
+        marker.Fill = selected
+            ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 95, 170))
+            : new SolidColorBrush(filled
+                ? System.Windows.Media.Color.FromRgb(47, 125, 211)
+                : System.Windows.Media.Color.FromRgb(139, 149, 165));
+        marker.Height = selected ? 16 : 12;
+        Canvas.SetTop(marker, selected ? 8 : 10);
     }
 
     private void AppCollection_Changed(object? sender, NotifyCollectionChangedEventArgs e)

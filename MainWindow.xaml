@@ -15,20 +15,44 @@
         </Grid.ColumnDefinitions>
         <StackPanel>
           <TextBlock Text="정리 강도" FontSize="18" FontWeight="SemiBold" />
-          <Slider x:Name="ModeSlider"
-                  Minimum="0"
-                  Maximum="3"
-                  TickFrequency="1"
-                  IsSnapToTickEnabled="True"
-                  Width="420"
-                  HorizontalAlignment="Left"
-                  ValueChanged="ModeSlider_ValueChanged" />
-          <UniformGrid Columns="4" Width="420" HorizontalAlignment="Left" Margin="0,2,0,0">
-            <TextBlock x:Name="ModeLabelOff" Text="구경만" TextAlignment="Left" />
-            <TextBlock x:Name="ModeLabelLow" Text="조심" TextAlignment="Center" />
-            <TextBlock x:Name="ModeLabelOptimal" Text="적당" TextAlignment="Center" />
-            <TextBlock x:Name="ModeLabelStrong" Text="적극" TextAlignment="Right" />
-          </UniformGrid>
+          <Grid Width="420" Height="54" HorizontalAlignment="Left" Margin="0,4,0,0">
+            <Border Height="4"
+                    VerticalAlignment="Top"
+                    Margin="8,14,8,0"
+                    Background="#D9DEE7"
+                    CornerRadius="2" />
+            <Border x:Name="ModeFillBar"
+                    Height="4"
+                    Width="0"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Margin="8,14,0,0"
+                    Background="#2F7DD3"
+                    CornerRadius="2" />
+            <Canvas x:Name="ModeMarkerCanvas"
+                    Height="28"
+                    VerticalAlignment="Top"
+                    IsHitTestVisible="False">
+              <Rectangle x:Name="ModeMarkerOff" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="8" Canvas.Top="10" />
+              <Rectangle x:Name="ModeMarkerLow" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="142.67" Canvas.Top="10" />
+              <Rectangle x:Name="ModeMarkerOptimal" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="277.33" Canvas.Top="10" />
+              <Rectangle x:Name="ModeMarkerStrong" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="412" Canvas.Top="10" />
+            </Canvas>
+            <Slider x:Name="ModeSlider"
+                    Minimum="0"
+                    Maximum="3"
+                    TickFrequency="1"
+                    IsSnapToTickEnabled="True"
+                    Width="420"
+                    VerticalAlignment="Top"
+                    ValueChanged="ModeSlider_ValueChanged" />
+            <Canvas Height="24" VerticalAlignment="Bottom" IsHitTestVisible="False">
+              <TextBlock x:Name="ModeLabelOff" Text="구경만" Width="70" TextAlignment="Center" Canvas.Left="-27" />
+              <TextBlock x:Name="ModeLabelLow" Text="조심" Width="70" TextAlignment="Center" Canvas.Left="108" />
+              <TextBlock x:Name="ModeLabelOptimal" Text="적당" Width="70" TextAlignment="Center" Canvas.Left="242" />
+              <TextBlock x:Name="ModeLabelStrong" Text="적극" Width="70" TextAlignment="Center" Canvas.Left="377" />
+            </Canvas>
+          </Grid>
           <TextBlock x:Name="ModeDescriptionText" Margin="0,6,0,0" FontWeight="SemiBold" />
           <TextBlock Text="중요한 시스템 창은 항상 그대로 둡니다."
                      Margin="0,6,0,0"
