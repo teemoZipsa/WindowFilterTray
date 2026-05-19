@@ -87,7 +87,7 @@ public partial class RuleEditorWindow : Window
     {
         if (!int.TryParse(MaxImpressionsBox.Text, out var maxImpressions) || maxImpressions < 0)
         {
-            MessageBox.Show("허용 노출 수는 0 이상의 숫자여야 합니다.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+            System.Windows.MessageBox.Show("허용 노출 수는 0 이상의 숫자여야 합니다.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

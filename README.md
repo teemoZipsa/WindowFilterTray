@@ -4,7 +4,7 @@
 
 ## Features
 
-- Windows 10/11용 C#/.NET 10 WPF 트레이 앱
+- Windows 10/11용 C#/.NET 8 WPF 트레이 앱
 - H.NotifyIcon 기반 시스템 트레이 메뉴
 - `Ctrl+Alt+X` 현재 커서 아래 창 캡처
 - `Ctrl+Alt+P` 전체 차단 ON/OFF 토글
@@ -36,7 +36,7 @@ dotnet build -c Release
 dotnet run
 ```
 
-현재 구현은 `net10.0-windows`, WPF, H.NotifyIcon.Wpf를 대상으로 합니다.
+현재 구현은 `net8.0-windows`, WPF, Windows Forms NotifyIcon을 대상으로 합니다.
 
 ## Notes
 

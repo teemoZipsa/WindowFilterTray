@@ -1,20 +1,19 @@
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Interop;
-using System.Windows.Media;
-using H.NotifyIcon;
 using WindowFilterTray.Models;
 using WindowFilterTray.Services;
 using WindowFilterTray.Views;
+using Forms = System.Windows.Forms;
 
 namespace WindowFilterTray;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private Mutex? _mutex;
-    private TaskbarIcon? _trayIcon;
+    private Forms.NotifyIcon? _trayIcon;
     private AppPaths _paths = null!;
     private StorageService _storage = null!;
     private WindowInspector _inspector = null!;
@@ -32,12 +31,24 @@ public partial class App : Application
     public AppSettings Settings { get; private set; } = new();
     public Dictionary<string, RuleStats> Stats { get; private set; } = [];
 
+    static App()
+    {
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("windir")))
+        {
+            var windowsPath = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            if (!string.IsNullOrWhiteSpace(windowsPath))
+            {
+                Environment.SetEnvironmentVariable("windir", windowsPath, EnvironmentVariableTarget.Process);
+            }
+        }
+    }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         _mutex = new Mutex(initiallyOwned: true, "WindowFilterTray.SingleInstance", out var created);
         if (!created)
         {
-            MessageBox.Show("이미 실행 중입니다.", "Window Filter Tray", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("이미 실행 중입니다.", "Window Filter Tray", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
@@ -287,11 +298,13 @@ public partial class App : Application
 
     private void CreateTrayIcon()
     {
-        _trayIcon = new TaskbarIcon
+        _trayIcon = new Forms.NotifyIcon
         {
-            ToolTipText = "Window Filter Tray",
-            IconSource = CreateTrayImage(paused: Settings.IsPaused || Settings.FilteringMode == FilteringMode.Off)
+            Text = "Window Filter Tray",
+            Icon = SystemIcons.Application,
+            Visible = true
         };
+        _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(ShowMainWindow);
         RefreshTrayIcon();
     }
 
@@ -302,72 +315,49 @@ public partial class App : Application
             return;
         }
 
-        _trayIcon.IconSource = CreateTrayImage(Settings.IsPaused || Settings.FilteringMode == FilteringMode.Off);
-        _trayIcon.ContextMenu = BuildTrayMenu();
+        _trayIcon.Text = Settings.IsPaused || Settings.FilteringMode == FilteringMode.Off
+            ? "Window Filter Tray - 꺼짐"
+            : "Window Filter Tray - 실행 중";
+        _trayIcon.ContextMenuStrip = BuildTrayMenu();
     }
 
-    private ContextMenu BuildTrayMenu()
+    private Forms.ContextMenuStrip BuildTrayMenu()
     {
-        var menu = new ContextMenu();
+        var menu = new Forms.ContextMenuStrip();
 
-        var open = new MenuItem { Header = "열기" };
-        open.Click += (_, _) => ShowMainWindow();
+        var open = new Forms.ToolStripMenuItem("열기");
+        open.Click += (_, _) => Dispatcher.Invoke(ShowMainWindow);
         menu.Items.Add(open);
 
-        var pause = new MenuItem { Header = Settings.IsPaused ? "전체 차단 켜기" : "전체 차단 끄기" };
-        pause.Click += (_, _) => SetPaused(!Settings.IsPaused);
+        var pause = new Forms.ToolStripMenuItem(Settings.IsPaused ? "전체 차단 켜기" : "전체 차단 끄기");
+        pause.Click += (_, _) => Dispatcher.Invoke(() => SetPaused(!Settings.IsPaused));
         menu.Items.Add(pause);
 
-        var picker = new MenuItem { Header = "창 선택" };
-        picker.Click += (_, _) => StartPicker();
+        var picker = new Forms.ToolStripMenuItem("창 선택");
+        picker.Click += (_, _) => Dispatcher.Invoke(StartPicker);
         menu.Items.Add(picker);
 
-        var recent = new MenuItem { Header = "최근 감지된 창" };
+        var recent = new Forms.ToolStripMenuItem("최근 감지된 창");
         foreach (var snapshot in RecentWindows.Take(10))
         {
-            var item = new MenuItem { Header = snapshot.Summary, Tag = snapshot };
-            item.Click += (_, _) => OpenRuleEditor(snapshot);
-            recent.Items.Add(item);
+            var item = new Forms.ToolStripMenuItem(snapshot.Summary) { Tag = snapshot };
+            item.Click += (_, _) => Dispatcher.Invoke(() => OpenRuleEditor(snapshot));
+            recent.DropDownItems.Add(item);
         }
 
-        if (recent.Items.Count == 0)
+        if (recent.DropDownItems.Count == 0)
         {
-            recent.Items.Add(new MenuItem { Header = "없음", IsEnabled = false });
+            recent.DropDownItems.Add(new Forms.ToolStripMenuItem("없음") { Enabled = false });
         }
 
         menu.Items.Add(recent);
-        menu.Items.Add(new Separator());
+        menu.Items.Add(new Forms.ToolStripSeparator());
 
-        var exit = new MenuItem { Header = "종료" };
-        exit.Click += (_, _) => ExitApplication();
+        var exit = new Forms.ToolStripMenuItem("종료");
+        exit.Click += (_, _) => Dispatcher.Invoke(ExitApplication);
         menu.Items.Add(exit);
 
         return menu;
-    }
-
-    private static ImageSource CreateTrayImage(bool paused)
-    {
-        var brush = new SolidColorBrush(paused ? Color.FromRgb(150, 150, 150) : Color.FromRgb(28, 142, 96));
-        brush.Freeze();
-
-        var pen = new Pen(Brushes.White, 1.4);
-        pen.Freeze();
-
-        var group = new DrawingGroup();
-        group.Children.Add(new GeometryDrawing(brush, null, new EllipseGeometry(new Point(8, 8), 7, 7)));
-        if (paused)
-        {
-            group.Children.Add(new GeometryDrawing(null, pen, Geometry.Parse("M 5,5 L 11,11 M 11,5 L 5,11")));
-        }
-        else
-        {
-            group.Children.Add(new GeometryDrawing(null, pen, Geometry.Parse("M 4.5,8 L 7,10.5 L 12,5")));
-        }
-
-        group.Freeze();
-        var image = new DrawingImage(group);
-        image.Freeze();
-        return image;
     }
 
     private void ExitApplication()

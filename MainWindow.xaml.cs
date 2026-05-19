@@ -96,7 +96,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var result = MessageBox.Show($"'{rule.DisplayName}' 규칙을 삭제할까요?", "규칙 삭제", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        var result = System.Windows.MessageBox.Show($"'{rule.DisplayName}' 규칙을 삭제할까요?", "규칙 삭제", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result == MessageBoxResult.Yes)
         {
             _app.DeleteRule(rule);
