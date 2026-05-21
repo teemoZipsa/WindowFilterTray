@@ -2,7 +2,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="불쑥창닫개"
-           Manufacturer="arasoft"
+           Manufacturer="임선규"
            Version="$(var.ProductVersion)"
            ProductCode="*"
            UpgradeCode="{A5D69A55-9988-466E-A39D-E8E16E806343}"

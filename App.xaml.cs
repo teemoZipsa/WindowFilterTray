@@ -3,8 +3,6 @@ using System.Drawing;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
 using WindowFilterTray.Models;
@@ -17,6 +15,7 @@ public partial class App : System.Windows.Application
 {
     private Mutex? _mutex;
     private TaskbarIcon? _trayIcon;
+    private Icon? _trayNativeIcon;
     private TrayPopoverControl? _trayPopover;
     private AppPaths _paths = null!;
     private StorageService _storage = null!;
@@ -96,6 +95,7 @@ public partial class App : System.Windows.Application
         _hotkeys?.Dispose();
         _eventHook?.Dispose();
         _trayIcon?.Dispose();
+        _trayNativeIcon?.Dispose();
         _storage?.SaveRules(Rules);
         _storage?.SaveStats(Stats);
         _storage?.SaveSettings(Settings);
@@ -267,7 +267,15 @@ public partial class App : System.Windows.Application
         _hotkeys = new HotkeyService(hwnd);
         _hotkeys.CaptureRequested += (_, _) => Dispatcher.Invoke(CaptureFromCursor);
         _hotkeys.PauseToggleRequested += (_, _) => Dispatcher.Invoke(() => SetPaused(!Settings.IsPaused));
-        _hotkeys.RegisterDefaults();
+        var failures = _hotkeys.RegisterDefaults();
+        if (failures.Count > 0)
+        {
+            System.Windows.MessageBox.Show(
+                $"다른 앱이 이미 사용 중이라 단축키를 등록하지 못했습니다: {string.Join(", ", failures)}",
+                "단축키 등록",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
     }
 
     private void OnWindowObserved(object? sender, WindowSnapshot snapshot)
@@ -302,12 +310,13 @@ public partial class App : System.Windows.Application
 
         Logs.Add(new MatchLogEntry
         {
+            At = DateTimeOffset.UtcNow,
             RuleId = decision.Rule.Id,
             RuleName = decision.Rule.DisplayName,
             WindowTitle = snapshot.Title,
             ProcessName = snapshot.ProcessName,
             Score = decision.Score,
-            Action = action.ToString(),
+            Action = action,
             Reason = decision.Reason
         });
 
@@ -344,7 +353,7 @@ public partial class App : System.Windows.Application
 
     private void AddRecentWindow(WindowSnapshot snapshot)
     {
-        var cutoff = DateTimeOffset.Now.AddMinutes(-30);
+        var cutoff = DateTimeOffset.UtcNow.AddMinutes(-30);
         for (var i = RecentWindows.Count - 1; i >= 0; i--)
         {
             if (RecentWindows[i].SeenAt < cutoff)
@@ -384,7 +393,7 @@ public partial class App : System.Windows.Application
 
         _trayIcon = new TaskbarIcon
         {
-            IconSource = LoadTrayIconSource(),
+            Icon = LoadTrayIcon(),
             PopupActivation = PopupActivationMode.LeftOrRightClick,
             TrayPopup = _trayPopover,
             NoLeftClickDelay = true
@@ -414,8 +423,8 @@ public partial class App : System.Windows.Application
     {
         var today = DateTimeOffset.Now.Date;
         var cleanedToday = Logs.Count(log =>
-            log.At.LocalDateTime.Date == today
-            && !string.Equals(log.Action, nameof(WindowActionType.Ignore), StringComparison.Ordinal));
+            log.At.ToLocalTime().Date == today
+            && log.Action != WindowActionType.Ignore);
         var isOff = Settings.FilteringMode == FilteringMode.Off;
         var isPaused = Settings.IsPaused;
         var statusText = isOff
@@ -452,36 +461,23 @@ public partial class App : System.Windows.Application
         _trayIcon?.CloseTrayPopup();
     }
 
-    private static ImageSource LoadTrayIconSource()
+    private Icon LoadTrayIcon()
     {
         try
         {
-            using var icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? string.Empty);
+            var icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? string.Empty);
             if (icon is not null)
             {
-                var source = Imaging.CreateBitmapSourceFromHIcon(
-                    icon.Handle,
-                    Int32Rect.Empty,
-                    BitmapSizeOptions.FromEmptyOptions());
-                source.Freeze();
-                return source;
+                _trayNativeIcon = icon;
+                return icon;
             }
         }
         catch
         {
         }
 
-        var pixels = new byte[16 * 16 * 4];
-        for (var i = 0; i < pixels.Length; i += 4)
-        {
-            pixels[i] = 0xD3;
-            pixels[i + 1] = 0x7D;
-            pixels[i + 2] = 0x2F;
-            pixels[i + 3] = 0xFF;
-        }
-
-        var fallback = BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgra32, null, pixels, 16 * 4);
-        fallback.Freeze();
+        var fallback = (Icon)SystemIcons.Application.Clone();
+        _trayNativeIcon = fallback;
         return fallback;
     }
 

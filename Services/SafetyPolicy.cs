@@ -34,9 +34,16 @@ public sealed class SafetyPolicy
         "로그인",
         "인증",
         "결제",
-        "암호",
-        "Windows",
-        "Microsoft"
+        "암호"
+    ];
+
+    private static readonly string[] ProtectedTitlePhrases =
+    [
+        "Windows 보안",
+        "Windows 업데이트",
+        "Windows Security",
+        "Windows Update",
+        "Microsoft Defender"
     ];
 
     public bool IsExcluded(WindowSnapshot snapshot, out string reason)
@@ -53,12 +60,6 @@ public sealed class SafetyPolicy
             return true;
         }
 
-        if (AlwaysExcludedClasses.Contains(snapshot.ClassName))
-        {
-            reason = $"강제 예외 창 클래스: {snapshot.ClassName}";
-            return true;
-        }
-
         if (snapshot.ProcessName.Equals("explorer.exe", StringComparison.OrdinalIgnoreCase)
             && AlwaysExcludedClasses.Contains(snapshot.ClassName))
         {
@@ -66,7 +67,20 @@ public sealed class SafetyPolicy
             return true;
         }
 
+        if (AlwaysExcludedClasses.Contains(snapshot.ClassName))
+        {
+            reason = $"강제 예외 창 클래스: {snapshot.ClassName}";
+            return true;
+        }
+
         var title = snapshot.Title ?? string.Empty;
+        var phrase = ProtectedTitlePhrases.FirstOrDefault(k => title.Contains(k, StringComparison.OrdinalIgnoreCase));
+        if (phrase is not null)
+        {
+            reason = $"보호 창 제목: {phrase}";
+            return true;
+        }
+
         var keyword = NegativeKeywords.FirstOrDefault(k => title.Contains(k, StringComparison.OrdinalIgnoreCase));
         if (keyword is not null)
         {

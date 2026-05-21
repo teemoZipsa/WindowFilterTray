@@ -49,7 +49,7 @@ public sealed class WindowInspector
             ProcessName = processName,
             ClassName = className,
             Rect = windowRect,
-            SeenAt = DateTimeOffset.Now
+            SeenAt = DateTimeOffset.UtcNow
         };
     }
 
@@ -102,16 +102,28 @@ public sealed class WindowInspector
 
     private static string GetWindowText(IntPtr hwnd)
     {
-        var builder = new StringBuilder(512);
+        var capacity = Math.Max(256, NativeMethods.GetWindowTextLength(hwnd) + 1);
+        var builder = new StringBuilder(capacity);
         NativeMethods.GetWindowText(hwnd, builder, builder.Capacity);
         return builder.ToString();
     }
 
     private static string GetClassName(IntPtr hwnd)
     {
-        var builder = new StringBuilder(256);
-        NativeMethods.GetClassName(hwnd, builder, builder.Capacity);
-        return builder.ToString();
+        var capacity = 256;
+        while (capacity <= 4096)
+        {
+            var builder = new StringBuilder(capacity);
+            var length = NativeMethods.GetClassName(hwnd, builder, builder.Capacity);
+            if (length < builder.Capacity - 1)
+            {
+                return builder.ToString();
+            }
+
+            capacity *= 2;
+        }
+
+        return string.Empty;
     }
 
     private static string GetProcessName(int processId)

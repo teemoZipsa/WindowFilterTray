@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace WindowFilterTray.Models;
 
 public sealed class WindowRule
@@ -12,6 +14,7 @@ public sealed class WindowRule
     public FrequencyCap FrequencyCap { get; set; } = new();
     public string? ThumbnailPath { get; set; }
 
+    [JsonIgnore]
     public string DisplayAction => Action switch
     {
         WindowActionType.Minimize => "작게 내리기",
@@ -21,6 +24,7 @@ public sealed class WindowRule
         _ => Action.ToString()
     };
 
+    [JsonIgnore]
     public string DisplayBasis
     {
         get
@@ -41,9 +45,14 @@ public sealed class WindowRule
                 parts.Add("제목");
             }
 
-            if (Matcher.UseSize || Matcher.UsePosition)
+            if (Matcher.UseSize)
             {
-                parts.Add("크기/위치");
+                parts.Add("크기");
+            }
+
+            if (Matcher.UsePosition)
+            {
+                parts.Add("위치");
             }
 
             return parts.Count == 0 ? "사용자 설정" : string.Join(", ", parts);

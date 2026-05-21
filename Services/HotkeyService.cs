@@ -22,10 +22,20 @@ public sealed class HotkeyService : IDisposable
     public event EventHandler? CaptureRequested;
     public event EventHandler? PauseToggleRequested;
 
-    public void RegisterDefaults()
+    public IReadOnlyList<string> RegisterDefaults()
     {
-        NativeMethods.RegisterHotKey(_hwnd, CaptureHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_X);
-        NativeMethods.RegisterHotKey(_hwnd, PauseHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_P);
+        var failures = new List<string>();
+        if (!NativeMethods.RegisterHotKey(_hwnd, CaptureHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_X))
+        {
+            failures.Add("Ctrl+Alt+X");
+        }
+
+        if (!NativeMethods.RegisterHotKey(_hwnd, PauseHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_P))
+        {
+            failures.Add("Ctrl+Alt+P");
+        }
+
+        return failures;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

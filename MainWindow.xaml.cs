@@ -160,8 +160,8 @@ public partial class MainWindow : Window, IMainShell
 
         var today = DateTimeOffset.Now.Date;
         var cleanedToday = _app.Logs.Count(log =>
-            log.At.LocalDateTime.Date == today
-            && !string.Equals(log.Action, nameof(WindowActionType.Ignore), StringComparison.Ordinal));
+            log.At.ToLocalTime().Date == today
+            && log.Action != WindowActionType.Ignore);
 
         TodayCleanedText.Text = cleanedToday.ToString();
         StatusValueText.Text = _app.Settings.IsPaused ? "일시정지됨" : "감시 중";

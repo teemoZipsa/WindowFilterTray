@@ -60,6 +60,12 @@ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
 - MSI는 아직 코드 서명되지 않았으므로 Windows SmartScreen 또는 게시자 경고가 표시될 수 있습니다. 차단 화면이 뜨면 파일 출처를 확인한 뒤 `추가 정보` → `실행`으로 진행해야 합니다.
 - 코드 서명 인증서 적용과 GitHub Release 자동화는 아직 제공하지 않습니다.
 
+## 문의
+
+- 제작자: 임선규
+- 이메일: `seonkyu@gmail.com`
+- Instagram DM: [@seon_7yu](https://www.instagram.com/seon_7yu/)
+
 ## 개발
 
 이 저장소는 .NET SDK가 설치된 Windows 환경에서 빌드합니다.
@@ -98,7 +104,7 @@ artifacts\publish\win-x64
 .\scripts\Package-Zip.ps1
 ```
 
-zip 파일은 `artifacts\release\WindowFilterTray-win-x64-v1.0.0.zip` 형식으로 생성됩니다. 스크립트는 저장소의 `.dotnet\dotnet.exe`가 있으면 우선 사용하고, 없으면 시스템 `dotnet`을 사용합니다. WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
+zip 파일은 `artifacts\release\WindowFilterTray-win-x64-v1.0.1.zip` 형식으로 생성됩니다. 스크립트는 저장소의 `.dotnet\dotnet.exe`가 있으면 우선 사용하고, 없으면 시스템 `dotnet`을 사용합니다. WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
 
 MSI 패키지는 아래 명령으로 만듭니다.
 

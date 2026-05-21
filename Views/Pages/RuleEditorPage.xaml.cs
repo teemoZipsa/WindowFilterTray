@@ -97,10 +97,10 @@ public partial class RuleEditorPage : System.Windows.Controls.UserControl
         SelectAction(rule.Action);
 
         var rect = new WindowRect(
-            rule.Matcher.PositionHint?.X ?? 0,
-            rule.Matcher.PositionHint?.Y ?? 0,
-            (rule.Matcher.PositionHint?.X ?? 0) + (rule.Matcher.SizeHint?.W ?? 0),
-            (rule.Matcher.PositionHint?.Y ?? 0) + (rule.Matcher.SizeHint?.H ?? 0));
+            rule.Matcher.Position?.X ?? 0,
+            rule.Matcher.Position?.Y ?? 0,
+            (rule.Matcher.Position?.X ?? 0) + (rule.Matcher.Size?.W ?? 0),
+            (rule.Matcher.Position?.Y ?? 0) + (rule.Matcher.Size?.H ?? 0));
         LoadSnapshotText(new WindowSnapshot
         {
             Title = rule.Matcher.TitleContains ?? rule.DisplayName,
@@ -305,15 +305,15 @@ public partial class RuleEditorPage : System.Windows.Controls.UserControl
         {
             rect = _snapshot.Rect;
         }
-        else if (_originalRule?.Matcher.SizeHint is not null)
+        else if (_originalRule?.Matcher.Size is not null)
         {
-            var x = _originalRule.Matcher.PositionHint?.X ?? 0;
-            var y = _originalRule.Matcher.PositionHint?.Y ?? 0;
+            var x = _originalRule.Matcher.Position?.X ?? 0;
+            var y = _originalRule.Matcher.Position?.Y ?? 0;
             rect = new WindowRect(
                 x,
                 y,
-                x + _originalRule.Matcher.SizeHint.W,
-                y + _originalRule.Matcher.SizeHint.H);
+                x + _originalRule.Matcher.Size.W,
+                y + _originalRule.Matcher.Size.H);
         }
 
         rule = new WindowRule
@@ -334,14 +334,14 @@ public partial class RuleEditorPage : System.Windows.Controls.UserControl
             {
                 ProcessName = ProcessNameBox.Text.Trim(),
                 WindowClass = WindowClassBox.Text.Trim(),
-                TitleContains = string.IsNullOrWhiteSpace(TitleContainsBox.Text) ? null : TitleContainsBox.Text.Trim(),
+                TitleContains = string.IsNullOrWhiteSpace(TitleContainsBox.Text) ? string.Empty : TitleContainsBox.Text.Trim(),
                 UseProcessName = useProcess,
                 UseWindowClass = useClass,
                 UseTitle = useTitle,
                 UseSize = useSize,
                 UsePosition = usePosition,
-                SizeHint = rect is null ? _originalRule?.Matcher.SizeHint : new SizeHint { W = rect.Value.Width, H = rect.Value.Height },
-                PositionHint = rect is null ? _originalRule?.Matcher.PositionHint : new PositionHint { X = rect.Value.Left, Y = rect.Value.Top },
+                Size = rect is null ? _originalRule?.Matcher.Size : new SizeHint { W = rect.Value.Width, H = rect.Value.Height },
+                Position = rect is null ? _originalRule?.Matcher.Position : new PositionHint { X = rect.Value.Left, Y = rect.Value.Top },
                 MinScore = _originalRule?.Matcher.MinScore ?? 60
             }
         };

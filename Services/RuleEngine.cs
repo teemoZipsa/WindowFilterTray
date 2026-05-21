@@ -6,6 +6,7 @@ public sealed class RuleEngine
 {
     private readonly SafetyPolicy _safetyPolicy;
     private readonly Dictionary<string, RuleStats> _stats;
+    private readonly object _statsLock = new();
 
     public RuleEngine(SafetyPolicy safetyPolicy, Dictionary<string, RuleStats> stats)
     {
@@ -34,6 +35,7 @@ public sealed class RuleEngine
             .Select(rule => Score(rule, snapshot, mode))
             .OfType<RuleScore>()
             .Where(result => result.IsCandidate)
+            .Where(result => IsAllowedByMode(result, mode))
             .OrderByDescending(result => result.Score)
             .FirstOrDefault();
 
@@ -45,18 +47,13 @@ public sealed class RuleEngine
         var config = ModeConfig.For(mode);
         if (mode == FilteringMode.Off)
         {
-            TouchStats(best.Rule, blocked: false);
+            ObserveStats(best.Rule);
             return MatchDecision.Match(best.Rule, best.Score, WindowActionType.Ignore, 0, "구경만 모드");
         }
 
         if (best.Score < Math.Max(best.Rule.Matcher.MinScore, config.MinScore))
         {
             return MatchDecision.NoMatch($"점수 부족: {best.Score}");
-        }
-
-        if (mode == FilteringMode.Low && !(best.ProcessMatched && best.ClassMatched))
-        {
-            return MatchDecision.NoMatch("약함 모드는 프로세스명과 창 클래스가 모두 필요함");
         }
 
         var shouldBlock = ShouldBlockByFrequency(best.Rule);
@@ -69,8 +66,11 @@ public sealed class RuleEngine
 
     public void MarkBlocked(WindowRule rule)
     {
-        var stats = EnsureStats(rule.Id);
-        stats.LastBlockedUtc = DateTimeOffset.UtcNow;
+        lock (_statsLock)
+        {
+            var stats = EnsureStats(rule.Id);
+            stats.LastBlockedUtc = DateTimeOffset.UtcNow;
+        }
     }
 
     private RuleScore? Score(WindowRule rule, WindowSnapshot snapshot, FilteringMode mode)
@@ -79,6 +79,7 @@ public sealed class RuleEngine
         var score = 0;
         var processMatched = false;
         var classMatched = false;
+        var secondarySignalMatched = false;
 
         if (matcher.UseProcessName)
         {
@@ -100,6 +101,7 @@ public sealed class RuleEngine
             }
 
             score += 30;
+            secondarySignalMatched = true;
         }
 
         if (matcher.UseTitle)
@@ -111,11 +113,12 @@ public sealed class RuleEngine
             }
 
             score += GetTitleScore(matcher.TitleContains);
+            secondarySignalMatched = true;
         }
 
         if (matcher.UseSize)
         {
-            if (matcher.SizeHint is null || !MatchesSize(snapshot.Rect, matcher.SizeHint))
+            if (matcher.Size is null || !MatchesSize(snapshot.Rect, matcher.Size))
             {
                 if (mode != FilteringMode.Strong)
                 {
@@ -125,12 +128,13 @@ public sealed class RuleEngine
             else
             {
                 score += 10;
+                secondarySignalMatched = true;
             }
         }
 
         if (matcher.UsePosition)
         {
-            if (matcher.PositionHint is null || !MatchesPosition(snapshot.Rect, matcher.PositionHint))
+            if (matcher.Position is null || !MatchesPosition(snapshot.Rect, matcher.Position))
             {
                 if (mode != FilteringMode.Strong)
                 {
@@ -140,34 +144,47 @@ public sealed class RuleEngine
             else
             {
                 score += 10;
+                secondarySignalMatched = true;
             }
         }
 
-        return new RuleScore(rule, score, processMatched, classMatched);
+        return new RuleScore(rule, score, processMatched, classMatched, secondarySignalMatched);
     }
 
     private bool ShouldBlockByFrequency(WindowRule rule)
     {
-        var stats = TouchStats(rule, blocked: false);
-        var cap = rule.FrequencyCap;
-        var max = Math.Max(0, cap.MaxImpressions);
-
-        return cap.Mode switch
+        lock (_statsLock)
         {
-            FrequencyCapMode.None => true,
-            FrequencyCapMode.PerCount => stats.TotalImpressions > max,
-            FrequencyCapMode.PerSession => stats.SessionImpressions > max,
-            FrequencyCapMode.PerDay => stats.TodayImpressions > max,
-            _ => true
-        };
+            var stats = TouchStats(rule, blocked: false);
+            var cap = rule.FrequencyCap;
+            var max = Math.Max(0, cap.MaxImpressions);
+
+            return cap.Mode switch
+            {
+                FrequencyCapMode.None => true,
+                FrequencyCapMode.PerCount => stats.TotalImpressions > max,
+                FrequencyCapMode.PerSession => stats.SessionImpressions > max,
+                FrequencyCapMode.PerDay => stats.TodayImpressions > max,
+                _ => true
+            };
+        }
+    }
+
+    private void ObserveStats(WindowRule rule)
+    {
+        lock (_statsLock)
+        {
+            var stats = EnsureStats(rule.Id);
+            stats.LastSeenUtc = DateTimeOffset.UtcNow;
+        }
     }
 
     private RuleStats TouchStats(WindowRule rule, bool blocked)
     {
         var stats = EnsureStats(rule.Id);
-        var today = DateTimeOffset.Now.ToString("yyyy-MM-dd");
+        var today = DateOnly.FromDateTime(DateTime.Now);
 
-        if (!string.Equals(stats.LastSeenLocalDate, today, StringComparison.Ordinal))
+        if (stats.LastSeenLocalDate != today)
         {
             stats.TodayImpressions = 0;
             stats.LastSeenLocalDate = today;
@@ -201,7 +218,9 @@ public sealed class RuleEngine
     {
         var wDelta = Math.Abs(rect.Width - hint.W);
         var hDelta = Math.Abs(rect.Height - hint.H);
-        return wDelta <= hint.W * hint.Tolerance && hDelta <= hint.H * hint.Tolerance;
+        var wTolerance = Math.Max(20.0, hint.W * hint.Tolerance);
+        var hTolerance = Math.Max(20.0, hint.H * hint.Tolerance);
+        return (double)wDelta <= wTolerance && (double)hDelta <= hTolerance;
     }
 
     private static int GetTitleScore(string titleContains)
@@ -214,11 +233,29 @@ public sealed class RuleEngine
     {
         var xDelta = Math.Abs(rect.Left - hint.X);
         var yDelta = Math.Abs(rect.Top - hint.Y);
-        return xDelta <= Math.Max(1, hint.X) * hint.Tolerance
-            && yDelta <= Math.Max(1, hint.Y) * hint.Tolerance;
+        var xTolerance = Math.Max(20.0, Math.Abs(hint.X) * hint.Tolerance);
+        var yTolerance = Math.Max(20.0, Math.Abs(hint.Y) * hint.Tolerance);
+        return (double)xDelta <= xTolerance && (double)yDelta <= yTolerance;
     }
 
-    private sealed record RuleScore(WindowRule Rule, int Score, bool ProcessMatched, bool ClassMatched)
+    private static bool IsAllowedByMode(RuleScore score, FilteringMode mode)
+    {
+        if (mode != FilteringMode.Low)
+        {
+            return true;
+        }
+
+        return score.Rule.Matcher.UseProcessName
+            && score.ProcessMatched
+            && score.SecondarySignalMatched;
+    }
+
+    private sealed record RuleScore(
+        WindowRule Rule,
+        int Score,
+        bool ProcessMatched,
+        bool ClassMatched,
+        bool SecondarySignalMatched)
     {
         public bool IsCandidate => Score > 0;
     }
@@ -230,7 +267,7 @@ public sealed class RuleEngine
             return mode switch
             {
                 FilteringMode.Off => new ModeConfig(int.MaxValue, 0),
-                FilteringMode.Low => new ModeConfig(90, 1500),
+                FilteringMode.Low => new ModeConfig(70, 1500),
                 FilteringMode.Optimal => new ModeConfig(70, 1000),
                 FilteringMode.Strong => new ModeConfig(50, 500),
                 _ => new ModeConfig(70, 1000)
