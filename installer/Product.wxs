@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="불쑥창닫개"
+           Manufacturer="arasoft"
+           Version="$(var.ProductVersion)"
+           ProductCode="*"
+           UpgradeCode="{A5D69A55-9988-466E-A39D-E8E16E806343}"
+           Scope="perUser">
+    <MajorUpgrade DowngradeErrorMessage="더 최신 버전의 불쑥창닫개가 이미 설치되어 있습니다." />
+    <MediaTemplate EmbedCab="yes" />
+    <Icon Id="AppIcon.ico" SourceFile="$(var.ProjectDir)..\Assets\AppIcon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <!-- With Scope="perUser", WiX maps this standard folder to %LocalAppData%\Programs at install time. -->
+      <Directory Id="INSTALLFOLDER" Name="WindowFilterTray" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="불쑥창닫개" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="PublishedFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)\**">
+        <Exclude Files="$(var.PublishDir)\**\*.pdb" />
+      </Files>
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcutComponent"
+               Directory="ApplicationProgramsFolder"
+               Guid="{9E5943F0-6E75-4F92-8406-5B0F2D4FD595}">
+      <Shortcut Id="StartMenuShortcut"
+                Name="불쑥창닫개"
+                Description="갑자기 뜨는 창을 규칙에 따라 조용히 정리합니다."
+                Target="[INSTALLFOLDER]불쑥창닫개.exe"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="AppIcon.ico" />
+      <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU"
+                     Key="Software\WindowFilterTray"
+                     Name="StartMenuShortcut"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+
+    <Feature Id="MainFeature" Title="불쑥창닫개" Level="1">
+      <ComponentGroupRef Id="PublishedFiles" />
+      <ComponentRef Id="StartMenuShortcutComponent" />
+    </Feature>
+  </Package>
+</Wix>

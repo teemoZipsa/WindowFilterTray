@@ -1,0 +1,10 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <OutputName>WindowFilterTray</OutputName>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <PublishDir Condition="'$(PublishDir)' == ''">..\artifacts\publish\win-x64</PublishDir>
+    <OutputPath>..\artifacts\installer\$(Configuration)\</OutputPath>
+    <AcceptEula>wix7</AcceptEula>
+    <DefineConstants>ProductVersion=$(ProductVersion);PublishDir=$(PublishDir)</DefineConstants>
+  </PropertyGroup>
+</Project>

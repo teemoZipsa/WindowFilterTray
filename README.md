@@ -99,6 +99,14 @@ artifacts\publish\win-x64
 
 zip 파일은 `artifacts\release\WindowFilterTray-win-x64-v1.0.0.zip` 형식으로 생성됩니다. 스크립트는 저장소의 `.dotnet\dotnet.exe`가 있으면 우선 사용하고, 없으면 시스템 `dotnet`을 사용합니다. WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
 
+MSI 패키지는 아래 명령으로 만듭니다.
+
+```powershell
+.\scripts\Package-Msi.ps1
+```
+
+MSI 빌드는 `WixToolset.Sdk/7.0.0`과 WiX 7 EULA 수락(`AcceptEula=wix7`)을 사용합니다. MSI는 아직 코드 서명되지 않았으므로 SmartScreen 또는 게시자 경고가 표시될 수 있습니다. portable zip과 MSI는 같은 `%AppData%\WindowFilterTray` 데이터를 공유하므로 둘 중 하나의 배포 방식만 사용하는 것을 권장합니다.
+
 ## 디자인 자료
 
 `dist\디자인` 폴더는 Claude 목업과 디자인 참고 산출물입니다. `artifacts` 배포 패키지에는 포함하지 않는 개발 참고 자료입니다.
