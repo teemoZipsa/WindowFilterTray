@@ -1,44 +1,38 @@
-using System.ComponentModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using WindowFilterTray.Models;
 using WindowFilterTray.Views.Pages;
 
 namespace WindowFilterTray;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IMainShell
 {
     private readonly App _app;
-    private object? _dashboardContent;
+    private readonly DashboardPage _dashboardPage;
     private RuleEditorPage? _editorPage;
     private RuleEditorReturnTarget _editorReturnTarget = RuleEditorReturnTarget.Dashboard;
     private bool _suppressNavigation;
     private bool _initializing = true;
 
-    public bool AllowClose { get; set; }
-
     public MainWindow(App app)
     {
         _app = app;
         InitializeComponent();
-        _dashboardContent = MainScrollViewer;
 
-        RulesList.ItemsSource = _app.Rules;
-        RecentList.ItemsSource = _app.RecentWindows;
-        LogList.ItemsSource = _app.Logs;
-        ModeSlider.Value = (int)_app.Settings.FilteringMode;
-        PauseCheckBox.IsChecked = _app.Settings.IsPaused;
+        _dashboardPage = new DashboardPage(app, this);
+        PageHost.Content = _dashboardPage;
         AutoStartCheckBox.IsChecked = _app.Settings.AutoStart;
-        UpdateModeDescription();
-        UpdateEmptyStates();
-        UpdateDashboardMetrics();
-        _app.Rules.CollectionChanged += AppCollection_Changed;
-        _app.RecentWindows.CollectionChanged += AppCollection_Changed;
+        PauseCheckBox.IsChecked = _app.Settings.IsPaused;
+        RefreshShellState();
+
         _app.Logs.CollectionChanged += AppCollection_Changed;
+        _app.Rules.CollectionChanged += AppCollection_Changed;
         _initializing = false;
     }
+
+    public bool AllowClose { get; set; }
 
     protected override void OnClosing(CancelEventArgs e)
     {
@@ -59,75 +53,66 @@ public partial class MainWindow : Window
         Hide();
     }
 
-    private void ModeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-        if (_initializing)
-        {
-            return;
-        }
-
-        _app.SetFilteringMode((FilteringMode)(int)ModeSlider.Value);
-        UpdateModeDescription();
-    }
-
-    private void PauseCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        if (_initializing)
-        {
-            return;
-        }
-
-        _app.SetPaused(PauseCheckBox.IsChecked == true);
-    }
-
-    private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        if (_initializing)
-        {
-            return;
-        }
-
-        _app.SetAutoStart(AutoStartCheckBox.IsChecked == true);
-    }
-
-    private void CreateRuleFromRecent_Click(object sender, RoutedEventArgs e)
-    {
-        if (RecentList.SelectedItem is WindowSnapshot snapshot)
-        {
-            _app.OpenRuleEditor(snapshot);
-        }
-    }
-
-    private void Picker_Click(object sender, RoutedEventArgs e)
+    public void StartPicker()
     {
         _app.StartPicker();
     }
 
-    private void EditRule_Click(object sender, RoutedEventArgs e)
+    public void OpenRuleEditor(WindowSnapshot snapshot)
     {
-        if (RulesList.SelectedItem is WindowRule rule)
-        {
-            _app.EditRule(rule);
-        }
-    }
-
-    private void DeleteRule_Click(object sender, RoutedEventArgs e)
-    {
-        if (RulesList.SelectedItem is not WindowRule rule)
+        if (!ConfirmDiscardEditorChanges())
         {
             return;
         }
 
-        var result = System.Windows.MessageBox.Show($"'{rule.DisplayName}' 항목을 삭제할까요?", "삭제", MessageBoxButton.YesNo, MessageBoxImage.Question);
-        if (result == MessageBoxResult.Yes)
-        {
-            _app.DeleteRule(rule);
-        }
+        ShowRuleEditor(new RuleEditorPage(snapshot, _app.Settings.FilteringMode), RuleEditorReturnTarget.Recent);
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    public void EditRule(WindowRule rule)
     {
-        Close();
+        if (!ConfirmDiscardEditorChanges())
+        {
+            return;
+        }
+
+        ShowRuleEditor(new RuleEditorPage(rule), RuleEditorReturnTarget.Rules);
+    }
+
+    public void DeleteRule(WindowRule rule)
+    {
+        _app.DeleteRule(rule);
+        RefreshShellState();
+    }
+
+    public void SetFilteringMode(FilteringMode mode)
+    {
+        _app.SetFilteringMode(mode);
+        RefreshShellState();
+    }
+
+    public void SetAutoStart(bool enabled)
+    {
+        _app.SetAutoStart(enabled);
+    }
+
+    public bool TrySetRuleEnabled(WindowRule rule, bool enabled, out string error)
+    {
+        error = string.Empty;
+        var previous = !enabled;
+        rule.Enabled = enabled;
+
+        try
+        {
+            _app.SaveAll();
+            RefreshShellState();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            rule.Enabled = previous;
+            error = $"규칙 상태를 저장하지 못했습니다: {ex.Message}";
+            return false;
+        }
     }
 
     public bool ConfirmDiscardEditorChanges()
@@ -162,99 +147,109 @@ public partial class MainWindow : Window
         NavigateToReturnTarget(RuleEditorReturnTarget.Logs);
     }
 
-    public void OpenRuleEditor(WindowSnapshot snapshot)
+    public void RefreshShellState()
     {
-        if (!ConfirmDiscardEditorChanges())
+        StatusModeText.Text = _app.Settings.FilteringMode switch
         {
-            return;
-        }
+            FilteringMode.Off => "구경만",
+            FilteringMode.Low => "조심",
+            FilteringMode.Optimal => "적당",
+            FilteringMode.Strong => "적극",
+            _ => string.Empty
+        };
 
-        ShowRuleEditor(new RuleEditorPage(snapshot, _app.Settings.FilteringMode), RuleEditorReturnTarget.Recent);
+        var today = DateTimeOffset.Now.Date;
+        var cleanedToday = _app.Logs.Count(log =>
+            log.At.LocalDateTime.Date == today
+            && !string.Equals(log.Action, nameof(WindowActionType.Ignore), StringComparison.Ordinal));
+
+        TodayCleanedText.Text = cleanedToday.ToString();
+        StatusValueText.Text = _app.Settings.IsPaused ? "일시정지됨" : "감시 중";
+        StatusDot.Fill = _app.Settings.IsPaused
+            ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(184, 134, 11))
+            : new SolidColorBrush(System.Windows.Media.Color.FromRgb(47, 154, 104));
+        _dashboardPage.RefreshDashboardState();
     }
 
-    public void EditRule(WindowRule rule)
+    private void PauseCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardEditorChanges())
+        if (_initializing)
         {
             return;
         }
 
-        ShowRuleEditor(new RuleEditorPage(rule), RuleEditorReturnTarget.Rules);
+        _app.SetPaused(PauseCheckBox.IsChecked == true);
+        RefreshShellState();
+    }
+
+    private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing)
+        {
+            return;
+        }
+
+        SetAutoStart(AutoStartCheckBox.IsChecked == true);
+    }
+
+    private void Picker_Click(object sender, RoutedEventArgs e)
+    {
+        StartPicker();
+    }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 
     private void NavDashboard_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation)
+        if (_suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
 
-        if (!PrepareDashboardNavigation())
-        {
-            return;
-        }
-
-        MainScrollViewer?.ScrollToTop();
+        _dashboardPage.ScrollToDashboard();
     }
 
     private void NavRules_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation)
+        if (_suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
 
-        if (!PrepareDashboardNavigation())
-        {
-            return;
-        }
-
-        RulesSection?.BringIntoView();
+        _dashboardPage.ShowRulesSection();
     }
 
     private void NavRecent_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation)
+        if (_suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
 
-        if (!PrepareDashboardNavigation())
-        {
-            return;
-        }
-
-        RecentSection?.BringIntoView();
+        _dashboardPage.ShowRecentSection();
     }
 
     private void NavLogs_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation)
+        if (_suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
 
-        if (!PrepareDashboardNavigation())
-        {
-            return;
-        }
-
-        LogsSection?.BringIntoView();
+        _dashboardPage.ShowLogsSection();
     }
 
     private void NavSettings_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation)
+        if (_suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
 
-        if (!PrepareDashboardNavigation())
-        {
-            return;
-        }
-
-        SettingsSection?.BringIntoView();
+        _dashboardPage.ShowSettingsSection();
     }
 
     private bool PrepareDashboardNavigation()
@@ -272,12 +267,7 @@ public partial class MainWindow : Window
 
     private void ShowRuleEditor(RuleEditorPage page, RuleEditorReturnTarget returnTarget)
     {
-        if (_editorPage is not null)
-        {
-            _editorPage.SaveRequested -= RuleEditor_SaveRequested;
-            _editorPage.CancelRequested -= RuleEditor_CancelRequested;
-        }
-
+        DisconnectEditor();
         _editorPage = page;
         _editorReturnTarget = returnTarget;
         page.SaveRequested += RuleEditor_SaveRequested;
@@ -350,35 +340,36 @@ public partial class MainWindow : Window
 
     private void ShowDashboardContent()
     {
-        if (PageHost.Content != _dashboardContent)
+        if (PageHost.Content != _dashboardPage)
         {
-            PageHost.Content = _dashboardContent;
+            PageHost.Content = _dashboardPage;
         }
     }
 
     private void NavigateToReturnTarget(RuleEditorReturnTarget target)
     {
+        RefreshShellState();
         switch (target)
         {
             case RuleEditorReturnTarget.Rules:
                 SetNavSelection(RulesNavButton);
-                RulesSection?.BringIntoView();
+                _dashboardPage.ShowRulesSection();
                 break;
             case RuleEditorReturnTarget.Recent:
                 SetNavSelection(RecentNavButton);
-                RecentSection?.BringIntoView();
+                _dashboardPage.ShowRecentSection();
                 break;
             case RuleEditorReturnTarget.Settings:
                 SetNavSelection(SettingsNavButton);
-                SettingsSection?.BringIntoView();
+                _dashboardPage.ShowSettingsSection();
                 break;
             case RuleEditorReturnTarget.Logs:
                 SetNavSelection(LogsNavButton);
-                LogsSection?.BringIntoView();
+                _dashboardPage.ShowLogsSection();
                 break;
             default:
                 SetNavSelection(DashboardNavButton);
-                MainScrollViewer?.ScrollToTop();
+                _dashboardPage.ScrollToDashboard();
                 break;
         }
     }
@@ -405,101 +396,9 @@ public partial class MainWindow : Window
         _suppressNavigation = false;
     }
 
-    private void UpdateModeDescription()
-    {
-        var mode = (FilteringMode)(int)ModeSlider.Value;
-        ModeDescriptionText.Text = mode switch
-        {
-            FilteringMode.Off => "구경만 — 아무 창도 닫지 않고 기록만 남깁니다",
-            FilteringMode.Low => "조심 — 확실히 같은 창일 때만 정리합니다",
-            FilteringMode.Optimal => "적당 — 권장. 대부분의 경우에 알맞게 정리합니다",
-            FilteringMode.Strong => "적극 — 비슷한 창도 더 빠르게 정리합니다",
-            _ => string.Empty
-        };
-        StatusModeText.Text = mode switch
-        {
-            FilteringMode.Off => "구경만",
-            FilteringMode.Low => "조심",
-            FilteringMode.Optimal => "적당",
-            FilteringMode.Strong => "적극",
-            _ => string.Empty
-        };
-        UpdateModeLabels(mode);
-        UpdateModeTrack(mode);
-        UpdateDashboardMetrics();
-    }
-
-    private void UpdateModeLabels(FilteringMode mode)
-    {
-        SetModeLabel(ModeLabelOff, mode == FilteringMode.Off);
-        SetModeLabel(ModeLabelLow, mode == FilteringMode.Low);
-        SetModeLabel(ModeLabelOptimal, mode == FilteringMode.Optimal);
-        SetModeLabel(ModeLabelStrong, mode == FilteringMode.Strong);
-    }
-
-    private static void SetModeLabel(TextBlock label, bool selected)
-    {
-        label.FontWeight = selected ? FontWeights.Bold : FontWeights.Normal;
-        label.Foreground = selected
-            ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 95, 170))
-            : new SolidColorBrush(System.Windows.Media.Color.FromRgb(85, 85, 85));
-    }
-
-    private void UpdateModeTrack(FilteringMode mode)
-    {
-        const double start = 8;
-        const double end = 412;
-        const double step = (end - start) / 3;
-        var value = (int)mode;
-        ModeFillBar.Width = Math.Max(0, value * step);
-
-        SetMarker(ModeMarkerOff, value >= 0, mode == FilteringMode.Off);
-        SetMarker(ModeMarkerLow, value >= 1, mode == FilteringMode.Low);
-        SetMarker(ModeMarkerOptimal, value >= 2, mode == FilteringMode.Optimal);
-        SetMarker(ModeMarkerStrong, value >= 3, mode == FilteringMode.Strong);
-    }
-
-    private static void SetMarker(System.Windows.Shapes.Rectangle marker, bool filled, bool selected)
-    {
-        marker.Fill = selected
-            ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 95, 170))
-            : new SolidColorBrush(filled
-                ? System.Windows.Media.Color.FromRgb(47, 125, 211)
-                : System.Windows.Media.Color.FromRgb(139, 149, 165));
-        marker.Height = selected ? 16 : 12;
-        Canvas.SetTop(marker, selected ? 8 : 10);
-    }
-
     private void AppCollection_Changed(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        UpdateEmptyStates();
-        UpdateDashboardMetrics();
-    }
-
-    private void UpdateEmptyStates()
-    {
-        RulesEmptyText.Visibility = _app.Rules.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        RecentEmptyText.Visibility = _app.RecentWindows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        LogsEmptyText.Visibility = _app.Logs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    private void UpdateDashboardMetrics()
-    {
-        var today = DateTimeOffset.Now.Date;
-        var cleanedToday = _app.Logs.Count(log =>
-            log.At.LocalDateTime.Date == today
-            && !string.Equals(log.Action, nameof(WindowActionType.Ignore), StringComparison.Ordinal));
-
-        RulesCountText.Text = _app.Rules.Count(rule => rule.Enabled).ToString();
-        RecentCountText.Text = _app.RecentWindows.Count.ToString();
-        LogCountText.Text = _app.Logs.Count.ToString();
-        TodayCleanedText.Text = cleanedToday.ToString();
-
-        var paused = _app.Settings.IsPaused;
-        StatusValueText.Text = paused ? "일시정지됨" : "감시 중";
-        StatusDot.Fill = paused
-            ? new SolidColorBrush(System.Windows.Media.Color.FromRgb(184, 134, 11))
-            : new SolidColorBrush(System.Windows.Media.Color.FromRgb(47, 154, 104));
+        RefreshShellState();
     }
 
     private enum RuleEditorReturnTarget
