@@ -10,6 +10,7 @@ public interface IMainShell
     void DeleteRule(WindowRule rule);
     void SetFilteringMode(FilteringMode mode);
     void SetAutoStart(bool enabled);
+    void SetKnownPopupTemplatesEnabled(bool enabled);
     bool TrySetRuleEnabled(WindowRule rule, bool enabled, out string error);
     void RefreshShellState();
 }

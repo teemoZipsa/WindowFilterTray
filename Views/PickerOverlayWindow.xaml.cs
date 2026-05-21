@@ -102,21 +102,25 @@ public partial class PickerOverlayWindow : Window
     private void UpdateHighlight(WindowSnapshot snapshot)
     {
         var rect = snapshot.Rect;
-        var left = rect.Left - Left;
-        var top = rect.Top - Top;
+        var topLeft = PointFromScreen(new System.Windows.Point(rect.Left, rect.Top));
+        var bottomRight = PointFromScreen(new System.Windows.Point(rect.Right, rect.Bottom));
+        var left = topLeft.X;
+        var top = topLeft.Y;
+        var width = Math.Max(0, bottomRight.X - topLeft.X);
+        var height = Math.Max(0, bottomRight.Y - topLeft.Y);
 
         System.Windows.Controls.Canvas.SetLeft(HighlightBorder, left);
         System.Windows.Controls.Canvas.SetTop(HighlightBorder, top);
-        HighlightBorder.Width = rect.Width;
-        HighlightBorder.Height = rect.Height;
+        HighlightBorder.Width = width;
+        HighlightBorder.Height = height;
         HighlightBorder.Visibility = Visibility.Visible;
 
         InfoTitleText.Text = string.IsNullOrWhiteSpace(snapshot.Title) ? "이름 없는 창" : snapshot.Title;
-        InfoProcessText.Text = $"{snapshot.ProcessName} · {rect.Width}x{rect.Height}";
+        InfoProcessText.Text = $"{snapshot.ProcessName} · {Math.Round(width)}x{Math.Round(height)}";
         InfoClassText.Text = snapshot.ClassName;
 
         var panelLeft = left;
-        var panelTop = top + rect.Height + 10;
+        var panelTop = top + height + 10;
         if (panelTop + 96 > ActualHeight)
         {
             panelTop = Math.Max(10, top - 106);

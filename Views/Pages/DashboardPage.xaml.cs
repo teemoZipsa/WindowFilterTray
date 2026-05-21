@@ -35,6 +35,7 @@ public partial class DashboardPage : System.Windows.Controls.UserControl
         RecentList.ItemsSource = _app.RecentWindows;
         LogList.ItemsSource = _logsView;
         ModeSlider.Value = (int)_app.Settings.FilteringMode;
+        KnownPopupTemplatesCheckBox.IsChecked = _app.Settings.UseKnownPopupTemplates;
 
         _rulesSearchTimer.Tick += (_, _) =>
         {
@@ -154,6 +155,17 @@ public partial class DashboardPage : System.Windows.Controls.UserControl
         _shell.SetFilteringMode((FilteringMode)(int)ModeSlider.Value);
         UpdateModeDescription();
         _shell.RefreshShellState();
+    }
+
+    private void KnownPopupTemplatesCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_initializing)
+        {
+            return;
+        }
+
+        _shell.SetKnownPopupTemplatesEnabled(KnownPopupTemplatesCheckBox.IsChecked == true);
+        UpdateModeDescription();
     }
 
     private void RulesSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -285,7 +297,9 @@ public partial class DashboardPage : System.Windows.Controls.UserControl
             FilteringMode.Off => "구경만 - 아무 창도 닫지 않고 기록만 남깁니다",
             FilteringMode.Low => "조심 - 확실히 같은 창일 때만 정리합니다",
             FilteringMode.Optimal => "적당 - 권장. 대부분의 경우에 알맞게 정리합니다",
-            FilteringMode.Strong => "적극 - 비슷한 창도 더 빠르게 정리합니다",
+            FilteringMode.Strong => _app.Settings.UseKnownPopupTemplates
+                ? "적극 - 비슷한 창도 더 빠르게 정리하고, 알려진 반복 팝업 템플릿을 함께 사용합니다"
+                : "적극 - 비슷한 창도 더 빠르게 정리합니다",
             _ => string.Empty
         };
         UpdateModeLabels(mode);

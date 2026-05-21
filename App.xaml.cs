@@ -24,6 +24,7 @@ public partial class App : System.Windows.Application
     private HotkeyService? _hotkeys;
     private RuleEngine _ruleEngine = null!;
     private ActionExecutor _actionExecutor = null!;
+    private KnownPopupTemplateService _knownPopupTemplates = null!;
     private ThumbnailService _thumbnailService = null!;
     private StartupService _startupService = null!;
     private MainWindow? _mainWindow;
@@ -81,6 +82,7 @@ public partial class App : System.Windows.Application
         }
 
         _ruleEngine = new RuleEngine(new SafetyPolicy(), Stats);
+        _knownPopupTemplates = new KnownPopupTemplateService();
         _eventHook.WindowObserved += OnWindowObserved;
         _eventHook.Start();
 
@@ -130,6 +132,12 @@ public partial class App : System.Windows.Application
     {
         _startupService.SetEnabled(enabled);
         Settings.AutoStart = enabled;
+        SaveAll();
+    }
+
+    public void SetKnownPopupTemplatesEnabled(bool enabled)
+    {
+        Settings.UseKnownPopupTemplates = enabled;
         SaveAll();
     }
 
@@ -267,6 +275,16 @@ public partial class App : System.Windows.Application
         _hotkeys = new HotkeyService(hwnd);
         _hotkeys.CaptureRequested += (_, _) => Dispatcher.Invoke(CaptureFromCursor);
         _hotkeys.PauseToggleRequested += (_, _) => Dispatcher.Invoke(() => SetPaused(!Settings.IsPaused));
+        var registeredHotkeys = _hotkeys;
+        window.Closed += (_, _) =>
+        {
+            registeredHotkeys.Dispose();
+            if (ReferenceEquals(_hotkeys, registeredHotkeys))
+            {
+                _hotkeys = null;
+            }
+        };
+
         var failures = _hotkeys.RegisterDefaults();
         if (failures.Count > 0)
         {
@@ -289,7 +307,7 @@ public partial class App : System.Windows.Application
 
     private async Task ProcessWindowAsync(WindowSnapshot snapshot)
     {
-        var decision = _ruleEngine.Evaluate(snapshot, Rules, Settings.FilteringMode, Settings.IsPaused);
+        var decision = _ruleEngine.Evaluate(snapshot, GetEvaluationRules(), Settings.FilteringMode, Settings.IsPaused);
         if (!decision.Matched || decision.Rule is null)
         {
             return;
@@ -326,6 +344,18 @@ public partial class App : System.Windows.Application
         }
 
         SaveAll();
+    }
+
+    private IReadOnlyCollection<WindowRule> GetEvaluationRules()
+    {
+        if (Settings.FilteringMode != FilteringMode.Strong || !Settings.UseKnownPopupTemplates)
+        {
+            return Rules;
+        }
+
+        return Rules
+            .Concat(_knownPopupTemplates.GetRules(WindowActionType.HideWindow))
+            .ToList();
     }
 
     private void ShowActionToast(WindowSnapshot snapshot, WindowActionType action)

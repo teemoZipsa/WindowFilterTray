@@ -104,7 +104,7 @@ artifacts\publish\win-x64
 .\scripts\Package-Zip.ps1
 ```
 
-zip 파일은 `artifacts\release\WindowFilterTray-win-x64-v1.0.1.zip` 형식으로 생성됩니다. 스크립트는 저장소의 `.dotnet\dotnet.exe`가 있으면 우선 사용하고, 없으면 시스템 `dotnet`을 사용합니다. WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
+zip 파일은 `artifacts\release\WindowFilterTray-win-x64-v1.0.2.zip` 형식으로 생성됩니다. 스크립트는 저장소의 `.dotnet\dotnet.exe`가 있으면 우선 사용하고, 없으면 시스템 `dotnet`을 사용합니다. WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
 
 MSI 패키지는 아래 명령으로 만듭니다.
 

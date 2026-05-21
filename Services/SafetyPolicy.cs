@@ -43,6 +43,8 @@ public sealed class SafetyPolicy
         "Windows 업데이트",
         "Windows Security",
         "Windows Update",
+        "Windows",
+        "Microsoft",
         "Microsoft Defender"
     ];
 

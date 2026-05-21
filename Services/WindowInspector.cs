@@ -133,15 +133,54 @@ public sealed class WindowInspector
             return string.Empty;
         }
 
+        var imageName = GetProcessImageName(processId);
+        if (!string.IsNullOrWhiteSpace(imageName))
+        {
+            return EnsureExeExtension(imageName);
+        }
+
         try
         {
             using var process = Process.GetProcessById(processId);
-            var name = process.ProcessName;
-            return name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name : $"{name}.exe";
+            return EnsureExeExtension(process.ProcessName);
         }
         catch
         {
             return string.Empty;
         }
+    }
+
+    private static string GetProcessImageName(int processId)
+    {
+        var handle = NativeMethods.OpenProcess(
+            NativeMethods.PROCESS_QUERY_LIMITED_INFORMATION,
+            false,
+            (uint)processId);
+
+        if (handle == IntPtr.Zero)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var capacity = 1024;
+            var builder = new StringBuilder(capacity);
+            if (!NativeMethods.QueryFullProcessImageName(handle, 0, builder, ref capacity))
+            {
+                return string.Empty;
+            }
+
+            return Path.GetFileName(builder.ToString());
+        }
+        finally
+        {
+            NativeMethods.CloseHandle(handle);
+        }
+    }
+
+    private static string EnsureExeExtension(string name)
+    {
+        return name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name : $"{name}.exe";
     }
 }

@@ -10,6 +10,7 @@ public sealed class HotkeyService : IDisposable
 
     private readonly IntPtr _hwnd;
     private readonly HwndSource _source;
+    private readonly HashSet<int> _registeredHotkeyIds = new();
     private bool _disposed;
 
     public HotkeyService(IntPtr hwnd)
@@ -25,17 +26,28 @@ public sealed class HotkeyService : IDisposable
     public IReadOnlyList<string> RegisterDefaults()
     {
         var failures = new List<string>();
-        if (!NativeMethods.RegisterHotKey(_hwnd, CaptureHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_X))
+        if (!TryRegisterHotKey(CaptureHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_X))
         {
             failures.Add("Ctrl+Alt+X");
         }
 
-        if (!NativeMethods.RegisterHotKey(_hwnd, PauseHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_P))
+        if (!TryRegisterHotKey(PauseHotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, NativeMethods.VK_P))
         {
             failures.Add("Ctrl+Alt+P");
         }
 
         return failures;
+    }
+
+    private bool TryRegisterHotKey(int id, uint modifiers, uint key)
+    {
+        if (!NativeMethods.RegisterHotKey(_hwnd, id, modifiers, key))
+        {
+            return false;
+        }
+
+        _registeredHotkeyIds.Add(id);
+        return true;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -68,8 +80,12 @@ public sealed class HotkeyService : IDisposable
         }
 
         _disposed = true;
-        NativeMethods.UnregisterHotKey(_hwnd, CaptureHotkeyId);
-        NativeMethods.UnregisterHotKey(_hwnd, PauseHotkeyId);
+        foreach (var id in _registeredHotkeyIds)
+        {
+            NativeMethods.UnregisterHotKey(_hwnd, id);
+        }
+
+        _registeredHotkeyIds.Clear();
         _source.RemoveHook(WndProc);
     }
 }

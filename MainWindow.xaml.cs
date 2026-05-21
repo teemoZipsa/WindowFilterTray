@@ -95,6 +95,12 @@ public partial class MainWindow : Window, IMainShell
         _app.SetAutoStart(enabled);
     }
 
+    public void SetKnownPopupTemplatesEnabled(bool enabled)
+    {
+        _app.SetKnownPopupTemplatesEnabled(enabled);
+        RefreshShellState();
+    }
+
     public bool TrySetRuleEnabled(WindowRule rule, bool enabled, out string error)
     {
         error = string.Empty;

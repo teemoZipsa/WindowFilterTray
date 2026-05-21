@@ -23,6 +23,7 @@ internal static class NativeMethods
     public const uint MOD_CONTROL = 0x0002;
     public const uint VK_X = 0x58;
     public const uint VK_P = 0x50;
+    public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
 
     public delegate void WinEventDelegate(
         IntPtr hWinEventHook,
@@ -102,6 +103,17 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool GetCursorPos(out POINT lpPoint);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool QueryFullProcessImageName(IntPtr hProcess, int dwFlags, StringBuilder lpExeName, ref int lpdwSize);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool CloseHandle(IntPtr hObject);
 }
 
 [StructLayout(LayoutKind.Sequential)]

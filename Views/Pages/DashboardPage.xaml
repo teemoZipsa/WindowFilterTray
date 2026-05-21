@@ -329,6 +329,16 @@
           <StackPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock x:Name="ModeDescriptionText" FontWeight="SemiBold" />
             <TextBlock Text="중요한 시스템 창은 항상 그대로 둡니다." Margin="0,6,0,0" Style="{StaticResource MutedText}" />
+            <CheckBox x:Name="KnownPopupTemplatesCheckBox"
+                      Content="적극 모드에서 알려진 반복 팝업 자동 숨기기"
+                      Margin="0,12,0,0"
+                      FontWeight="SemiBold"
+                      Checked="KnownPopupTemplatesCheckBox_Changed"
+                      Unchecked="KnownPopupTemplatesCheckBox_Changed" />
+            <TextBlock Text="네이트온, 팟플레이어, 알집 계열 등은 앱 이름과 팝업성 제목이 함께 맞을 때만 숨깁니다."
+                       Margin="24,4,0,0"
+                       Style="{StaticResource MutedText}"
+                       TextWrapping="Wrap" />
             <Border Background="{StaticResource DangerSoftBrush}" BorderBrush="#F2C8C3" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,12,0,0">
               <TextBlock Text="닫기는 되돌릴 수 없습니다. 처음에는 작게 내리기나 숨기기를 권장합니다." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource DangerBrush}" />
             </Border>
