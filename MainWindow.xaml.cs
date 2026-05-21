@@ -204,7 +204,7 @@ public partial class MainWindow : Window, IMainShell
 
     private void NavDashboard_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation || !PrepareDashboardNavigation())
+        if (_initializing || _suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
@@ -214,7 +214,7 @@ public partial class MainWindow : Window, IMainShell
 
     private void NavRules_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation || !PrepareDashboardNavigation())
+        if (_initializing || _suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
@@ -224,7 +224,7 @@ public partial class MainWindow : Window, IMainShell
 
     private void NavRecent_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation || !PrepareDashboardNavigation())
+        if (_initializing || _suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
@@ -234,7 +234,7 @@ public partial class MainWindow : Window, IMainShell
 
     private void NavLogs_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation || !PrepareDashboardNavigation())
+        if (_initializing || _suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
@@ -244,7 +244,7 @@ public partial class MainWindow : Window, IMainShell
 
     private void NavSettings_Checked(object sender, RoutedEventArgs e)
     {
-        if (_suppressNavigation || !PrepareDashboardNavigation())
+        if (_initializing || _suppressNavigation || !PrepareDashboardNavigation())
         {
             return;
         }
