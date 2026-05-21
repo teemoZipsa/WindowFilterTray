@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="불쑥창닫개"
            Manufacturer="arasoft"
            Version="$(var.ProductVersion)"
            ProductCode="*"
            UpgradeCode="{A5D69A55-9988-466E-A39D-E8E16E806343}"
+           Codepage="65001"
            Scope="perUser">
     <MajorUpgrade DowngradeErrorMessage="더 최신 버전의 불쑥창닫개가 이미 설치되어 있습니다." />
     <MediaTemplate EmbedCab="yes" />
     <Icon Id="AppIcon.ico" SourceFile="$(var.ProjectDir)..\Assets\AppIcon.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.ProjectDir)License.rtf" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <!-- With Scope="perUser", WiX maps this standard folder to %LocalAppData%\Programs at install time. -->

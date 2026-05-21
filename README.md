@@ -57,7 +57,8 @@ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
 - 관리자 권한으로 실행된 다른 앱의 창은 일반 사용자 권한에서 조작이 제한될 수 있습니다.
 - 앱 내부 WebView/브라우저 콘텐츠 요소 단위 차단은 지원하지 않습니다.
 - 네트워크 수준 광고 차단은 지원하지 않습니다.
-- 설치 프로그램과 GitHub Release 패키징은 아직 별도 제공하지 않습니다.
+- MSI는 아직 코드 서명되지 않았으므로 Windows SmartScreen 또는 게시자 경고가 표시될 수 있습니다. 차단 화면이 뜨면 파일 출처를 확인한 뒤 `추가 정보` → `실행`으로 진행해야 합니다.
+- 코드 서명 인증서 적용과 GitHub Release 자동화는 아직 제공하지 않습니다.
 
 ## 개발
 
@@ -105,8 +106,8 @@ MSI 패키지는 아래 명령으로 만듭니다.
 .\scripts\Package-Msi.ps1
 ```
 
-MSI 빌드는 `WixToolset.Sdk/7.0.0`과 WiX 7 EULA 수락(`AcceptEula=wix7`)을 사용합니다. MSI는 아직 코드 서명되지 않았으므로 SmartScreen 또는 게시자 경고가 표시될 수 있습니다. portable zip과 MSI는 같은 `%AppData%\WindowFilterTray` 데이터를 공유하므로 둘 중 하나의 배포 방식만 사용하는 것을 권장합니다.
+MSI 빌드는 `WixToolset.Sdk/7.0.0`과 WiX 7 EULA 수락(`AcceptEula=wix7`)을 사용합니다. 설치 UI는 기본 설치 위치 선택과 라이선스 안내 화면을 포함합니다. MSI는 아직 코드 서명되지 않았으므로 SmartScreen 또는 게시자 경고가 표시될 수 있습니다. portable zip과 MSI는 같은 `%AppData%\WindowFilterTray` 데이터를 공유하므로 둘 중 하나의 배포 방식만 사용하는 것을 권장합니다.
 
 ## 디자인 자료
 
-`dist\디자인` 폴더는 Claude 목업과 디자인 참고 산출물입니다. `artifacts` 배포 패키지에는 포함하지 않는 개발 참고 자료입니다.
+`docs\design` 폴더는 Claude 목업과 디자인 참고 산출물입니다. `artifacts` 배포 패키지에는 포함하지 않는 개발 참고 자료입니다.

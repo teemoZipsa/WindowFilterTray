@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>불쑥창닫개 — UI/UX 재설계</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" />
+
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/shell.css" />
+<link rel="stylesheet" href="styles/components.css" />
+
+<style>
+  html, body { background: #E9EBEF; }
+  /* Make sure the canvas takes the viewport */
+  #app, html, body { height: 100%; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Design canvas starter -->
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<!-- Our components -->
+<script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="components/shell.jsx"></script>
+<script type="text/babel" src="components/screens.jsx"></script>
+<script type="text/babel" src="components/rule-editor.jsx"></script>
+<script type="text/babel" src="components/tray-and-guide.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+
+/* Default status for the screens. */
+const defaultStatus = {
+  state: "active",
+  intensity: 2,
+  cleanedToday: 37,
+};
+const counts = { rules: 5, detected: 12 };
+
+function App() {
+  return (
+    <DesignCanvas
+      title="불쑥창닫개 · UI/UX 재설계"
+      subtitle="Windows 11 Fluent 감성의 데스크톱 트레이 유틸리티 · 라이트 테마 우선"
+      background="#E9EBEF"
+    >
+      {/* SECTION 1 — Brand & system */}
+      <DCSection id="brand" title="브랜드 · 시스템 컨텍스트">
+        <DCArtboard id="tray" label="트레이 팝오버 (NotifyIcon 클릭)" width={780} height={520}>
+          <TrayContext />
+        </DCArtboard>
+        <DCArtboard id="styleguide" label="컴포넌트 스타일 가이드" width={948} height={1620}>
+          <div style={{ padding: 24 }}>
+            <StyleGuide />
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      {/* SECTION 2 — App screens (the brief's core deliverable) */}
+      <DCSection id="screens" title="앱 화면 — 좌측 내비 + 상단 상태바 구조 (900×640)">
+        <DCArtboard id="dashboard" label="① 대시보드" width={900} height={640}>
+          <AppWindow active="dashboard" counts={counts} status={defaultStatus}>
+            <Dashboard />
+          </AppWindow>
+        </DCArtboard>
+
+        <DCArtboard id="rules" label="② 정리 규칙" width={900} height={640}>
+          <AppWindow active="rules" counts={counts} status={defaultStatus}>
+            <RulesScreen />
+          </AppWindow>
+        </DCArtboard>
+
+        <DCArtboard id="detected" label="③ 최근 감지 창" width={900} height={640}>
+          <AppWindow active="detected" counts={counts} status={defaultStatus}>
+            <DetectedScreen />
+          </AppWindow>
+        </DCArtboard>
+
+        <DCArtboard id="history" label="④ 처리 기록" width={900} height={640}>
+          <AppWindow active="history" counts={counts} status={defaultStatus}>
+            <HistoryScreen />
+          </AppWindow>
+        </DCArtboard>
+
+        <DCArtboard id="settings" label="⑤ 설정" width={900} height={640}>
+          <AppWindow active="settings" counts={counts} status={defaultStatus}>
+            <SettingsScreen />
+          </AppWindow>
+        </DCArtboard>
+
+        <DCArtboard id="rule-editor" label="⑥ 규칙 생성 / 편집" width={900} height={820}>
+          <AppWindow active="rules" counts={counts} status={defaultStatus}>
+            <RuleEditor />
+          </AppWindow>
+        </DCArtboard>
+
+        <DCArtboard id="paused" label="⑦ 일시정지 상태" width={900} height={640}>
+          <AppWindow active="dashboard" counts={counts}
+            status={{ state: "paused", intensity: 2, cleanedToday: 37 }}>
+            <Dashboard />
+          </AppWindow>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App />);
+</script>
+
+</body>
+</html>
