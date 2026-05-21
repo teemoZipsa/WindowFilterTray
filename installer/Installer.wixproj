@@ -5,6 +5,8 @@
     <PublishDir Condition="'$(PublishDir)' == ''">..\artifacts\publish\win-x64</PublishDir>
     <OutputPath>..\artifacts\installer\$(Configuration)\</OutputPath>
     <AcceptEula>wix7</AcceptEula>
+    <!-- The package intentionally installs harvested files under the current user's LocalAppData profile. -->
+    <SuppressIces>ICE38;ICE64;ICE91</SuppressIces>
     <DefineConstants>ProductVersion=$(ProductVersion);PublishDir=$(PublishDir)</DefineConstants>
   </PropertyGroup>
 

@@ -15,9 +15,10 @@
     <WixVariable Id="WixUILicenseRtf" Value="$(var.ProjectDir)License.rtf" />
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
-    <StandardDirectory Id="ProgramFiles6432Folder">
-      <!-- With Scope="perUser", WiX maps this standard folder to %LocalAppData%\Programs at install time. -->
-      <Directory Id="INSTALLFOLDER" Name="WindowFilterTray" />
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="LocalProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="WindowFilterTray" />
+      </Directory>
     </StandardDirectory>
 
     <StandardDirectory Id="ProgramMenuFolder">
