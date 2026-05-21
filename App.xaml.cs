@@ -131,38 +131,77 @@ public partial class App : System.Windows.Application
 
     public void OpenRuleEditor(WindowSnapshot snapshot)
     {
-        var dialog = new RuleEditorWindow(snapshot, Settings.FilteringMode)
-        {
-            Owner = _mainWindow
-        };
-
-        if (dialog.ShowDialog() != true || dialog.Rule is null)
-        {
-            return;
-        }
-
-        dialog.Rule.ThumbnailPath = _thumbnailService.Capture(snapshot, dialog.Rule.Id);
-        Rules.Add(dialog.Rule);
-        SaveAll();
+        ShowMainWindow();
+        _mainWindow?.OpenRuleEditor(snapshot);
     }
 
     public void EditRule(WindowRule rule)
     {
-        var dialog = new RuleEditorWindow(rule)
-        {
-            Owner = _mainWindow
-        };
+        ShowMainWindow();
+        _mainWindow?.EditRule(rule);
+    }
 
-        if (dialog.ShowDialog() != true || dialog.Rule is null)
+    public bool TryAddRuleFromEditor(WindowRule rule, WindowSnapshot? snapshot, out string error)
+    {
+        error = string.Empty;
+
+        if (snapshot is not null)
         {
-            return;
+            try
+            {
+                rule.ThumbnailPath = _thumbnailService.Capture(snapshot, rule.Id);
+            }
+            catch
+            {
+                rule.ThumbnailPath = null;
+            }
         }
 
-        var index = Rules.IndexOf(rule);
-        if (index >= 0)
+        Rules.Add(rule);
+        try
         {
-            Rules[index] = dialog.Rule;
             SaveAll();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Rules.Remove(rule);
+            error = $"규칙을 저장하지 못했습니다: {ex.Message}";
+            return false;
+        }
+    }
+
+    public bool TryUpdateRuleFromEditor(WindowRule rule, out string error)
+    {
+        error = string.Empty;
+        var index = -1;
+        for (var i = 0; i < Rules.Count; i++)
+        {
+            if (Rules[i].Id.Equals(rule.Id, StringComparison.Ordinal))
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if (index < 0)
+        {
+            error = "편집 중이던 규칙이 이미 삭제되어 저장할 수 없습니다.";
+            return false;
+        }
+
+        var previous = Rules[index];
+        Rules[index] = rule;
+        try
+        {
+            SaveAll();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Rules[index] = previous;
+            error = $"규칙을 저장하지 못했습니다: {ex.Message}";
+            return false;
         }
     }
 
@@ -175,6 +214,13 @@ public partial class App : System.Windows.Application
 
     public void StartPicker()
     {
+        if (_mainWindow is not null && !_mainWindow.ConfirmDiscardEditorChanges())
+        {
+            return;
+        }
+
+        _mainWindow?.DiscardEditorChangesToRecent();
+
         var picker = new PickerOverlayWindow(_inspector)
         {
             Owner = _mainWindow

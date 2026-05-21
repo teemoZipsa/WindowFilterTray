@@ -110,7 +110,7 @@ public sealed class RuleEngine
                 return null;
             }
 
-            score += 20;
+            score += GetTitleScore(matcher.TitleContains);
         }
 
         if (matcher.UseSize)
@@ -202,6 +202,12 @@ public sealed class RuleEngine
         var wDelta = Math.Abs(rect.Width - hint.W);
         var hDelta = Math.Abs(rect.Height - hint.H);
         return wDelta <= hint.W * hint.Tolerance && hDelta <= hint.H * hint.Tolerance;
+    }
+
+    private static int GetTitleScore(string titleContains)
+    {
+        var signalLength = titleContains.Count(c => !char.IsWhiteSpace(c));
+        return signalLength >= 6 ? 70 : 30;
     }
 
     private static bool MatchesPosition(WindowRect rect, PositionHint hint)

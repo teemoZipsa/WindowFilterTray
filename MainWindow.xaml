@@ -4,9 +4,139 @@
         Title="불쑥창닫개"
         Width="980"
         Height="680"
-        MinWidth="760"
-        MinHeight="520">
+        MinWidth="900"
+        MinHeight="620"
+        Background="#F4F5F7"
+        FontFamily="Segoe UI, Malgun Gothic">
   <Window.Resources>
+    <SolidColorBrush x:Key="CanvasBrush" Color="#F4F5F7" />
+    <SolidColorBrush x:Key="AppBrush" Color="#FAFBFC" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SunkenBrush" Color="#EEF0F3" />
+    <SolidColorBrush x:Key="StrokeBrush" Color="#E5E8ED" />
+    <SolidColorBrush x:Key="StrokeStrongBrush" Color="#D4D9E1" />
+    <SolidColorBrush x:Key="TextBrush" Color="#14171C" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#4B5260" />
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#7A8190" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#2F7DD3" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#EAF3FF" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#1E5FAA" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#2F9A68" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#B8860B" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#C44538" />
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#FFF0EE" />
+
+    <DropShadowEffect x:Key="PanelShadow" BlurRadius="14" ShadowDepth="1" Opacity="0.08" Color="#0F1724" />
+
+    <Style TargetType="{x:Type TextBlock}">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style x:Key="EyebrowText" TargetType="{x:Type TextBlock}">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+    </Style>
+
+    <Style x:Key="MutedText" TargetType="{x:Type TextBlock}">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+    </Style>
+
+    <Style x:Key="Card" TargetType="{x:Type Border}">
+      <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource StrokeBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Effect" Value="{StaticResource PanelShadow}" />
+      <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="PrimaryButton" TargetType="{x:Type Button}">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="14,0" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type Button}">
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="6">
+              <ContentPresenter HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="{x:Type Button}" BasedOn="{StaticResource PrimaryButton}">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource StrokeStrongBrush}" />
+      <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+
+    <Style x:Key="GhostButton" TargetType="{x:Type Button}" BasedOn="{StaticResource SecondaryButton}">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="NavButton" TargetType="{x:Type RadioButton}">
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type RadioButton}">
+            <Border x:Name="Root"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="6"
+                    Padding="10,0">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="4" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="Indicator"
+                        Width="3"
+                        Height="18"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        CornerRadius="2" />
+                <ContentPresenter Grid.Column="1"
+                                  VerticalAlignment="Center"
+                                  RecognizesAccessKey="True" />
+              </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Root" Property="Background" Value="{StaticResource SunkenBrush}" />
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                <Setter TargetName="Indicator" Property="Background" Value="{StaticResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource AccentTextBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <Style x:Key="StrengthSliderStyle" TargetType="{x:Type Slider}">
       <Setter Property="Template">
         <Setter.Value>
@@ -26,13 +156,13 @@
                                 Opacity="0" />
                 </Track.IncreaseRepeatButton>
                 <Track.Thumb>
-                  <Thumb Width="11" Height="20">
+                  <Thumb Width="18" Height="18">
                     <Thumb.Template>
                       <ControlTemplate TargetType="{x:Type Thumb}">
-                        <Border Background="#EEF2F8"
-                                BorderBrush="#8B95A5"
-                                BorderThickness="1"
-                                CornerRadius="1" />
+                        <Border Background="#FFFFFF"
+                                BorderBrush="{StaticResource AccentBrush}"
+                                BorderThickness="2"
+                                CornerRadius="9" />
                       </ControlTemplate>
                     </Thumb.Template>
                   </Thumb>
@@ -43,158 +173,471 @@
         </Setter.Value>
       </Setter>
     </Style>
-  </Window.Resources>
-  <DockPanel Margin="16">
-    <Border DockPanel.Dock="Top" BorderBrush="#D6D8DE" BorderThickness="0,0,0,1" Padding="0,0,0,14">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="2*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <StackPanel>
-          <TextBlock Text="정리 강도" FontSize="18" FontWeight="SemiBold" />
-          <Grid Width="420" Height="54" HorizontalAlignment="Left" Margin="0,4,0,0">
-            <Border Height="4"
-                    VerticalAlignment="Top"
-                    Margin="8,14,8,0"
-                    Background="#D9DEE7"
-                    CornerRadius="2" />
-            <Border x:Name="ModeFillBar"
-                    Height="4"
-                    Width="0"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Left"
-                    Margin="8,14,0,0"
-                    Background="#2F7DD3"
-                    CornerRadius="2" />
-            <Canvas x:Name="ModeMarkerCanvas"
-                    Height="28"
-                    VerticalAlignment="Top"
-                    IsHitTestVisible="False">
-              <Rectangle x:Name="ModeMarkerOff" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="8" Canvas.Top="10" />
-              <Rectangle x:Name="ModeMarkerLow" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="142.67" Canvas.Top="10" />
-              <Rectangle x:Name="ModeMarkerOptimal" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="277.33" Canvas.Top="10" />
-              <Rectangle x:Name="ModeMarkerStrong" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="412" Canvas.Top="10" />
-            </Canvas>
-            <Slider x:Name="ModeSlider"
-                    Minimum="0"
-                    Maximum="3"
-                    TickFrequency="1"
-                    IsSnapToTickEnabled="True"
-                    Style="{StaticResource StrengthSliderStyle}"
-                    Width="420"
-                    VerticalAlignment="Top"
-                    ValueChanged="ModeSlider_ValueChanged" />
-            <Canvas Height="24" VerticalAlignment="Bottom" IsHitTestVisible="False">
-              <TextBlock x:Name="ModeLabelOff" Text="구경만" Width="70" TextAlignment="Center" Canvas.Left="-27" />
-              <TextBlock x:Name="ModeLabelLow" Text="조심" Width="70" TextAlignment="Center" Canvas.Left="108" />
-              <TextBlock x:Name="ModeLabelOptimal" Text="적당" Width="70" TextAlignment="Center" Canvas.Left="242" />
-              <TextBlock x:Name="ModeLabelStrong" Text="적극" Width="70" TextAlignment="Center" Canvas.Left="377" />
-            </Canvas>
-          </Grid>
-          <TextBlock x:Name="ModeDescriptionText" Margin="0,6,0,0" FontWeight="SemiBold" />
-          <TextBlock Text="중요한 시스템 창은 항상 그대로 둡니다."
-                     Margin="0,6,0,0"
-                     Foreground="#555" />
-        </StackPanel>
-        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
-          <CheckBox x:Name="PauseCheckBox"
-                    Content="잠시 멈춤"
-                    Margin="0,0,0,8"
-                    Checked="PauseCheckBox_Changed"
-                    Unchecked="PauseCheckBox_Changed" />
-          <CheckBox x:Name="AutoStartCheckBox"
-                    Content="Windows 시작 시 실행"
-                    Checked="AutoStartCheckBox_Changed"
-                    Unchecked="AutoStartCheckBox_Changed" />
-        </StackPanel>
-      </Grid>
-    </Border>
 
-    <Grid Margin="0,14,0,0">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="1.15*" />
-        <ColumnDefinition Width="1*" />
-      </Grid.ColumnDefinitions>
+    <Style x:Key="ModernListView" TargetType="{x:Type ListView}">
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+  </Window.Resources>
+
+  <Border Margin="14"
+          Background="{StaticResource AppBrush}"
+          BorderBrush="{StaticResource StrokeBrush}"
+          BorderThickness="1"
+          CornerRadius="14"
+          ClipToBounds="True">
+    <Grid>
       <Grid.RowDefinitions>
+        <RowDefinition Height="36" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="180" />
       </Grid.RowDefinitions>
 
-      <GroupBox Header="앞으로 정리할 창" Margin="0,0,10,10">
-        <DockPanel Margin="8">
-          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Content="설정 바꾸기" Width="110" Margin="0,0,8,0" Click="EditRule_Click" />
-            <Button Content="삭제" Width="80" Click="DeleteRule_Click" />
+      <Border BorderBrush="{StaticResource StrokeBrush}" BorderThickness="0,0,0,1">
+        <DockPanel LastChildFill="False">
+          <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+            <Border Width="16" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="4" Margin="0,0,8,0" />
+            <TextBlock Text="불쑥창닫개" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
           </StackPanel>
-          <Grid>
-            <ListView x:Name="RulesList">
-              <ListView.View>
-                <GridView>
-                  <GridViewColumn Header="이름" DisplayMemberBinding="{Binding DisplayName}" Width="210" />
-                  <GridViewColumn Header="처리 방법" DisplayMemberBinding="{Binding DisplayAction}" Width="110" />
-                  <GridViewColumn Header="기준" DisplayMemberBinding="{Binding DisplayBasis}" Width="170" />
-                </GridView>
-              </ListView.View>
-            </ListView>
-            <TextBlock x:Name="RulesEmptyText"
-                       Text="아직 정리할 창이 없습니다. 불편한 창이 뜨면 &quot;창 고르기&quot;로 추가하세요."
-                       TextWrapping="Wrap"
-                       Foreground="#666"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="24" />
-          </Grid>
+          <Button DockPanel.Dock="Right"
+                  Width="44"
+                  Height="32"
+                  Content="X"
+                  Style="{StaticResource GhostButton}"
+                  Click="CloseButton_Click" />
         </DockPanel>
-      </GroupBox>
+      </Border>
 
-      <GroupBox Header="최근 뜬 창" Grid.Column="1" Margin="0,0,0,10">
-        <DockPanel Margin="8">
-          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Content="창 고르기" Width="90" Margin="0,0,8,0" Click="Picker_Click" />
-            <Button Content="앞으로 이 창 정리하기" Width="170" Click="CreateRuleFromRecent_Click" />
-          </StackPanel>
-          <Grid>
-            <ListView x:Name="RecentList">
-              <ListView.View>
-                <GridView>
-                  <GridViewColumn Header="시간" DisplayMemberBinding="{Binding SeenAt}" Width="130" />
-                  <GridViewColumn Header="창 이름" DisplayMemberBinding="{Binding Title}" Width="220" />
-                  <GridViewColumn Header="앱" DisplayMemberBinding="{Binding ProcessName}" Width="120" />
-                </GridView>
-              </ListView.View>
-            </ListView>
-            <TextBlock x:Name="RecentEmptyText"
-                       Text="최근에 열린 창이 여기에 표시됩니다. 목록에서 고른 뒤 &quot;앞으로 이 창 정리하기&quot;를 누르세요."
-                       TextWrapping="Wrap"
-                       Foreground="#666"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="24" />
-          </Grid>
-        </DockPanel>
-      </GroupBox>
+      <Grid Grid.Row="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="200" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-      <GroupBox Header="정리 기록" Grid.Row="1" Grid.ColumnSpan="2">
-        <Grid Margin="8">
-          <ListView x:Name="LogList">
-            <ListView.View>
-              <GridView>
-                <GridViewColumn Header="시간" DisplayMemberBinding="{Binding At}" Width="130" />
-                <GridViewColumn Header="이름" DisplayMemberBinding="{Binding RuleName}" Width="180" />
-                <GridViewColumn Header="앱" DisplayMemberBinding="{Binding ProcessName}" Width="120" />
-                <GridViewColumn Header="처리" DisplayMemberBinding="{Binding DisplayAction}" Width="90" />
-                <GridViewColumn Header="설명" DisplayMemberBinding="{Binding Reason}" Width="300" />
-              </GridView>
-            </ListView.View>
-          </ListView>
-          <TextBlock x:Name="LogsEmptyText"
-                     Text="정리한 기록이 아직 없습니다."
-                     Foreground="#666"
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center" />
+        <Border BorderBrush="{StaticResource StrokeBrush}" BorderThickness="0,0,1,0" Padding="8">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+              <TextBlock Text="상태" Style="{StaticResource EyebrowText}" Margin="10,8,10,6" />
+              <Border Background="{StaticResource SunkenBrush}" CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                <StackPanel>
+                  <DockPanel>
+                    <TextBlock Text="시스템 창 보호" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <Border DockPanel.Dock="Right" Width="28" Height="16" Background="{StaticResource AccentBrush}" CornerRadius="8">
+                      <Ellipse Width="10" Height="10" Fill="White" HorizontalAlignment="Right" Margin="0,0,3,0" />
+                    </Border>
+                  </DockPanel>
+                  <CheckBox x:Name="AutoStartCheckBox"
+                            Content="Windows 시작 시 실행"
+                            Margin="0,10,0,0"
+                            FontSize="12"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Checked="AutoStartCheckBox_Changed"
+                            Unchecked="AutoStartCheckBox_Changed" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <StackPanel>
+              <TextBlock Text="탐색" Style="{StaticResource EyebrowText}" Margin="10,2,10,6" />
+              <RadioButton x:Name="DashboardNavButton" Content="대시보드" Style="{StaticResource NavButton}" IsChecked="True" Checked="NavDashboard_Checked" />
+              <RadioButton x:Name="RulesNavButton" Content="정리 규칙" Style="{StaticResource NavButton}" Checked="NavRules_Checked" />
+              <RadioButton x:Name="RecentNavButton" Content="최근 감지 창" Style="{StaticResource NavButton}" Checked="NavRecent_Checked" />
+              <RadioButton x:Name="LogsNavButton" Content="처리 기록" Style="{StaticResource NavButton}" Checked="NavLogs_Checked" />
+              <RadioButton x:Name="SettingsNavButton" Content="설정" Style="{StaticResource NavButton}" Checked="NavSettings_Checked" />
+
+              <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="12" Margin="0,18,0,0">
+                <StackPanel>
+                  <TextBlock Text="빠른 작업" FontWeight="SemiBold" Foreground="{StaticResource AccentTextBrush}" />
+                  <TextBlock Text="불편한 창을 찍어서 바로 정리 규칙을 만들 수 있습니다."
+                             TextWrapping="Wrap"
+                             Margin="0,5,0,10"
+                             FontSize="12"
+                             Foreground="{StaticResource TextSecondaryBrush}" />
+                  <Button Content="창 찍어서 규칙 만들기"
+                          Style="{StaticResource PrimaryButton}"
+                          Click="Picker_Click" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="76" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <Border BorderBrush="{StaticResource StrokeBrush}" BorderThickness="0,0,0,1" Padding="20,12">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="170" />
+                <ColumnDefinition Width="1" />
+                <ColumnDefinition Width="170" />
+                <ColumnDefinition Width="1" />
+                <ColumnDefinition Width="170" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="150" />
+              </Grid.ColumnDefinitions>
+
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource SuccessBrush}" Margin="0,0,10,0" />
+                <StackPanel>
+                  <TextBlock Text="현재 상태" Style="{StaticResource EyebrowText}" />
+                  <TextBlock x:Name="StatusValueText" Text="감시 중" FontSize="14" FontWeight="SemiBold" />
+                </StackPanel>
+              </StackPanel>
+
+              <Border Grid.Column="1" Width="1" Height="28" Background="{StaticResource StrokeBrush}" VerticalAlignment="Center" />
+
+              <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="18,0,0,0">
+                <TextBlock Text="정리 강도" Style="{StaticResource EyebrowText}" />
+                <Border Background="{StaticResource AccentSoftBrush}"
+                        BorderBrush="#D5E8FF"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        HorizontalAlignment="Left"
+                        Padding="8,3"
+                        Margin="0,2,0,0">
+                  <TextBlock x:Name="StatusModeText" Text="적당" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentTextBrush}" />
+                </Border>
+              </StackPanel>
+
+              <Border Grid.Column="3" Width="1" Height="28" Background="{StaticResource StrokeBrush}" VerticalAlignment="Center" />
+
+              <StackPanel Grid.Column="4" VerticalAlignment="Center" Margin="18,0,0,0">
+                <TextBlock Text="오늘 정리한 창" Style="{StaticResource EyebrowText}" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Baseline">
+                  <TextBlock x:Name="TodayCleanedText" Text="0" FontSize="18" FontWeight="Bold" />
+                  <TextBlock Text="개" Margin="4,4,0,0" Style="{StaticResource MutedText}" />
+                </StackPanel>
+              </StackPanel>
+
+              <CheckBox x:Name="PauseCheckBox"
+                        Grid.Column="6"
+                        Content="빠른 일시정지"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        FontWeight="SemiBold"
+                        Checked="PauseCheckBox_Changed"
+                        Unchecked="PauseCheckBox_Changed" />
+            </Grid>
+          </Border>
+
+          <ContentControl x:Name="PageHost" Grid.Row="1">
+          <ScrollViewer x:Name="MainScrollViewer" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20">
+              <Grid Margin="0,0,0,16">
+                <StackPanel>
+                  <TextBlock Text="대시보드" FontSize="22" FontWeight="Bold" />
+                  <TextBlock Text="최근 화면에 떠오른 창과 지금 작동 중인 규칙을 한눈에 봅니다."
+                             Style="{StaticResource MutedText}"
+                             Margin="0,3,0,0" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                  <Button Content="창 고르기"
+                          Style="{StaticResource SecondaryButton}"
+                          Margin="0,0,8,0"
+                          Click="Picker_Click" />
+                  <Button Content="선택한 창 규칙 만들기"
+                          Style="{StaticResource PrimaryButton}"
+                          Click="CreateRuleFromRecent_Click" />
+                </StackPanel>
+              </Grid>
+
+              <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="1*" />
+                  <ColumnDefinition Width="1*" />
+                  <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,10,0">
+                  <StackPanel>
+                    <TextBlock Text="정리 규칙" Style="{StaticResource EyebrowText}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                      <TextBlock x:Name="RulesCountText" Text="0" FontSize="28" FontWeight="Bold" />
+                      <TextBlock Text="개 활성" Margin="8,12,0,0" Style="{StaticResource MutedText}" />
+                    </StackPanel>
+                    <TextBlock Text="필요한 규칙만 켜두면 더 조용하게 작동합니다."
+                               Style="{StaticResource MutedText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+                  </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="16" Margin="0,0,10,0">
+                  <StackPanel>
+                    <TextBlock Text="최근 감지" Style="{StaticResource EyebrowText}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                      <TextBlock x:Name="RecentCountText" Text="0" FontSize="28" FontWeight="Bold" />
+                      <TextBlock Text="개 창" Margin="8,12,0,0" Style="{StaticResource MutedText}" />
+                    </StackPanel>
+                    <TextBlock Text="목록에서 고르면 바로 정리 규칙을 만들 수 있습니다."
+                               Style="{StaticResource MutedText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+                  </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16">
+                  <StackPanel>
+                    <TextBlock Text="처리 기록" Style="{StaticResource EyebrowText}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                      <TextBlock x:Name="LogCountText" Text="0" FontSize="28" FontWeight="Bold" />
+                      <TextBlock Text="건 저장" Margin="8,12,0,0" Style="{StaticResource MutedText}" />
+                    </StackPanel>
+                    <TextBlock Text="최근 500건을 보관해 규칙 동작을 확인합니다."
+                               Style="{StaticResource MutedText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="1.2*" />
+                  <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="330" />
+                  <RowDefinition Height="260" />
+                </Grid.RowDefinitions>
+
+                <Border x:Name="RulesSection" Style="{StaticResource Card}" Margin="0,0,10,10">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="0,0,0,1" Padding="16,12">
+                      <Grid>
+                        <TextBlock Text="정리 규칙" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                          <Button Content="설정 바꾸기"
+                                  Style="{StaticResource SecondaryButton}"
+                                  Height="26"
+                                  Padding="10,0"
+                                  Margin="0,0,6,0"
+                                  Click="EditRule_Click" />
+                          <Button Content="삭제"
+                                  Style="{StaticResource GhostButton}"
+                                  Height="26"
+                                  Padding="10,0"
+                                  Foreground="{StaticResource DangerBrush}"
+                                  Click="DeleteRule_Click" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <Grid>
+                      <ListView x:Name="RulesList" Style="{StaticResource ModernListView}">
+                        <ListView.ItemTemplate>
+                          <DataTemplate>
+                            <Grid Margin="8,6">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="96" />
+                                <ColumnDefinition Width="120" />
+                              </Grid.ColumnDefinitions>
+                              <StackPanel>
+                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DisplayBasis}" Style="{StaticResource MutedText}" Margin="0,3,0,0" />
+                              </StackPanel>
+                              <Border Grid.Column="1"
+                                      Background="{StaticResource AccentSoftBrush}"
+                                      CornerRadius="10"
+                                      Padding="8,3"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayAction}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentTextBrush}" />
+                              </Border>
+                              <TextBlock Grid.Column="2"
+                                         Text="{Binding FrequencyCap.MaxImpressions, StringFormat=처음 {0}회 보기}"
+                                         Style="{StaticResource MutedText}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ListView.ItemTemplate>
+                      </ListView>
+                      <TextBlock x:Name="RulesEmptyText"
+                                 Text="아직 정리할 창이 없습니다. 불편한 창이 뜨면 창 찍어서 규칙을 추가하세요."
+                                 TextWrapping="Wrap"
+                                 Foreground="{StaticResource TextTertiaryBrush}"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Margin="24" />
+                    </Grid>
+                  </DockPanel>
+                </Border>
+
+                <Border x:Name="RecentSection" Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,0,10">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="0,0,0,1" Padding="16,12">
+                      <Grid>
+                        <StackPanel Orientation="Horizontal">
+                          <TextBlock Text="최근 감지된 창" FontWeight="SemiBold" />
+                          <Ellipse Width="6" Height="6" Fill="{StaticResource SuccessBrush}" Margin="8,6,0,0" />
+                        </StackPanel>
+                        <TextBlock Text="실시간" HorizontalAlignment="Right" Style="{StaticResource MutedText}" />
+                      </Grid>
+                    </Border>
+                    <Grid>
+                      <ListView x:Name="RecentList" Style="{StaticResource ModernListView}">
+                        <ListView.ItemTemplate>
+                          <DataTemplate>
+                            <Grid Margin="8,6">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="74" />
+                              </Grid.ColumnDefinitions>
+                              <StackPanel>
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                <TextBlock FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,3,0,0">
+                                  <Run Text="{Binding ProcessName}" />
+                                  <Run Text=" · " />
+                                  <Run Text="{Binding ClassName}" />
+                                </TextBlock>
+                              </StackPanel>
+                              <TextBlock Grid.Column="1"
+                                         Text="{Binding SeenAt, StringFormat=HH:mm:ss}"
+                                         Style="{StaticResource MutedText}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ListView.ItemTemplate>
+                      </ListView>
+                      <TextBlock x:Name="RecentEmptyText"
+                                 Text="최근에 열린 창이 여기에 표시됩니다."
+                                 TextWrapping="Wrap"
+                                 Foreground="{StaticResource TextTertiaryBrush}"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Margin="24" />
+                    </Grid>
+                  </DockPanel>
+                </Border>
+
+                <Border x:Name="LogsSection" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource Card}">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="0,0,0,1" Padding="16,12">
+                      <Grid>
+                        <TextBlock Text="처리 기록" FontWeight="SemiBold" />
+                        <TextBlock Text="시간, 창 제목, 규칙, 실행 이유" HorizontalAlignment="Right" Style="{StaticResource MutedText}" />
+                      </Grid>
+                    </Border>
+                    <Grid>
+                      <ListView x:Name="LogList" Style="{StaticResource ModernListView}">
+                        <ListView.ItemTemplate>
+                          <DataTemplate>
+                            <Grid Margin="8,6">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="72" />
+                                <ColumnDefinition Width="1.5*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="1.2*" />
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Text="{Binding At, StringFormat=HH:mm:ss}" Style="{StaticResource MutedText}" VerticalAlignment="Center" />
+                              <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding WindowTitle}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding ProcessName}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,2,0,0" />
+                              </StackPanel>
+                              <TextBlock Grid.Column="2" Text="{Binding RuleName}" Style="{StaticResource MutedText}" VerticalAlignment="Center" />
+                              <Border Grid.Column="3"
+                                      Background="{StaticResource SunkenBrush}"
+                                      CornerRadius="10"
+                                      Padding="8,3"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayAction}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
+                              </Border>
+                              <TextBlock Grid.Column="4" Text="{Binding Reason}" Style="{StaticResource MutedText}" VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ListView.ItemTemplate>
+                      </ListView>
+                      <TextBlock x:Name="LogsEmptyText"
+                                 Text="정리한 기록이 아직 없습니다."
+                                 Foreground="{StaticResource TextTertiaryBrush}"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </DockPanel>
+                </Border>
+              </Grid>
+
+              <Border x:Name="SettingsSection" Style="{StaticResource Card}" Padding="16" Margin="0,4,0,0">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="440" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+
+                  <StackPanel>
+                    <TextBlock Text="정리 강도" FontWeight="SemiBold" />
+                    <Grid Width="420" Height="54" HorizontalAlignment="Left" Margin="0,6,0,0">
+                      <Border Height="4"
+                              VerticalAlignment="Top"
+                              Margin="8,14,8,0"
+                              Background="{StaticResource SunkenBrush}"
+                              BorderBrush="{StaticResource StrokeBrush}"
+                              BorderThickness="1"
+                              CornerRadius="2" />
+                      <Border x:Name="ModeFillBar"
+                              Height="4"
+                              Width="0"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Left"
+                              Margin="8,14,0,0"
+                              Background="{StaticResource AccentBrush}"
+                              CornerRadius="2" />
+                      <Canvas Height="28" VerticalAlignment="Top" IsHitTestVisible="False">
+                        <Rectangle x:Name="ModeMarkerOff" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="8" Canvas.Top="10" />
+                        <Rectangle x:Name="ModeMarkerLow" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="142.67" Canvas.Top="10" />
+                        <Rectangle x:Name="ModeMarkerOptimal" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="277.33" Canvas.Top="10" />
+                        <Rectangle x:Name="ModeMarkerStrong" Width="2" Height="12" Fill="#8B95A5" Canvas.Left="412" Canvas.Top="10" />
+                      </Canvas>
+                      <Slider x:Name="ModeSlider"
+                              Minimum="0"
+                              Maximum="3"
+                              TickFrequency="1"
+                              IsSnapToTickEnabled="True"
+                              Style="{StaticResource StrengthSliderStyle}"
+                              Width="420"
+                              VerticalAlignment="Top"
+                              ValueChanged="ModeSlider_ValueChanged" />
+                      <Canvas Height="24" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                        <TextBlock x:Name="ModeLabelOff" Text="구경만" Width="70" TextAlignment="Center" Canvas.Left="-27" />
+                        <TextBlock x:Name="ModeLabelLow" Text="조심" Width="70" TextAlignment="Center" Canvas.Left="108" />
+                        <TextBlock x:Name="ModeLabelOptimal" Text="적당" Width="70" TextAlignment="Center" Canvas.Left="242" />
+                        <TextBlock x:Name="ModeLabelStrong" Text="적극" Width="70" TextAlignment="Center" Canvas.Left="377" />
+                      </Canvas>
+                    </Grid>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock x:Name="ModeDescriptionText" FontWeight="SemiBold" />
+                    <TextBlock Text="중요한 시스템 창은 항상 그대로 둡니다."
+                               Margin="0,6,0,0"
+                               Style="{StaticResource MutedText}" />
+                    <Border Background="{StaticResource DangerSoftBrush}"
+                            BorderBrush="#F2C8C3"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="10"
+                            Margin="0,12,0,0">
+                      <TextBlock Text="닫기는 되돌릴 수 없습니다. 처음에는 작게 내리기나 숨기기를 권장합니다."
+                                 TextWrapping="Wrap"
+                                 FontSize="12"
+                                 Foreground="{StaticResource DangerBrush}" />
+                    </Border>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+          </ContentControl>
         </Grid>
-      </GroupBox>
+      </Grid>
     </Grid>
-  </DockPanel>
+  </Border>
 </Window>
