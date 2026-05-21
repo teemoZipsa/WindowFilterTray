@@ -3,17 +3,21 @@ using System.Drawing;
 using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using H.NotifyIcon;
+using H.NotifyIcon.Core;
 using WindowFilterTray.Models;
 using WindowFilterTray.Services;
 using WindowFilterTray.Views;
-using Forms = System.Windows.Forms;
 
 namespace WindowFilterTray;
 
 public partial class App : System.Windows.Application
 {
     private Mutex? _mutex;
-    private Forms.NotifyIcon? _trayIcon;
+    private TaskbarIcon? _trayIcon;
+    private TrayPopoverControl? _trayPopover;
     private AppPaths _paths = null!;
     private StorageService _storage = null!;
     private WindowInspector _inspector = null!;
@@ -107,7 +111,7 @@ public partial class App : System.Windows.Application
         _storage.SaveStats(Stats);
         _storage.SaveSettings(Settings);
         _storage.SaveLogs(Logs);
-        RefreshTrayIcon();
+        RefreshTrayState();
     }
 
     public void SetFilteringMode(FilteringMode mode)
@@ -369,82 +373,125 @@ public partial class App : System.Windows.Application
 
     private void CreateTrayIcon()
     {
-        _trayIcon = new Forms.NotifyIcon
+        _trayPopover = new TrayPopoverControl(
+            ShowMainWindow,
+            StartPicker,
+            ShowLogsSection,
+            () => SetPaused(!Settings.IsPaused),
+            ExitApplication,
+            CloseTrayPopup,
+            OpenRuleEditor);
+
+        _trayIcon = new TaskbarIcon
         {
-            Text = Branding.RunningText,
-            Icon = LoadTrayIcon(),
-            Visible = true
+            IconSource = LoadTrayIconSource(),
+            PopupActivation = PopupActivationMode.LeftOrRightClick,
+            TrayPopup = _trayPopover,
+            NoLeftClickDelay = true
         };
-        _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(ShowMainWindow);
-        RefreshTrayIcon();
+
+        // Left and right click intentionally open the same WPF popover; no legacy context menu or double-click action is exposed.
+        _trayIcon.TrayPopupOpen += (_, _) =>
+        {
+            _trayPopover.Update(CreateTrayPopoverSnapshot());
+            _trayPopover.FocusInitialAction();
+        };
+
+        RefreshTrayState();
     }
 
-    private void RefreshTrayIcon()
+    private void RefreshTrayState()
     {
         if (_trayIcon is null)
         {
             return;
         }
 
-        _trayIcon.Text = Settings.IsPaused || Settings.FilteringMode == FilteringMode.Off
-            ? Branding.PausedText
-            : Branding.RunningText;
-        _trayIcon.ContextMenuStrip = BuildTrayMenu();
+        _trayIcon.ToolTipText = CreateTrayToolTip();
     }
 
-    private Forms.ContextMenuStrip BuildTrayMenu()
+    private TrayPopoverSnapshot CreateTrayPopoverSnapshot()
     {
-        var menu = new Forms.ContextMenuStrip();
+        var today = DateTimeOffset.Now.Date;
+        var cleanedToday = Logs.Count(log =>
+            log.At.LocalDateTime.Date == today
+            && !string.Equals(log.Action, nameof(WindowActionType.Ignore), StringComparison.Ordinal));
+        var isOff = Settings.FilteringMode == FilteringMode.Off;
+        var isPaused = Settings.IsPaused;
+        var statusText = isOff
+            ? "꺼짐"
+            : isPaused
+                ? "잠시 멈춤"
+                : "감시 중";
+        var description = isOff
+            ? "규칙 처리가 꺼져 있습니다."
+            : isPaused
+                ? "새 창을 기록하지만 정리하지 않습니다."
+                : "새 창을 감지하고 규칙을 적용합니다.";
 
-        var open = new Forms.ToolStripMenuItem("열기");
-        open.Click += (_, _) => Dispatcher.Invoke(ShowMainWindow);
-        menu.Items.Add(open);
-
-        var pause = new Forms.ToolStripMenuItem(Settings.IsPaused ? "다시 시작" : "잠시 멈춤");
-        pause.Click += (_, _) => Dispatcher.Invoke(() => SetPaused(!Settings.IsPaused));
-        menu.Items.Add(pause);
-
-        var picker = new Forms.ToolStripMenuItem("창 고르기");
-        picker.Click += (_, _) => Dispatcher.Invoke(StartPicker);
-        menu.Items.Add(picker);
-
-        var recent = new Forms.ToolStripMenuItem("최근 뜬 창");
-        foreach (var snapshot in RecentWindows.Take(10))
+        return new TrayPopoverSnapshot
         {
-            var item = new Forms.ToolStripMenuItem(snapshot.Summary) { Tag = snapshot };
-            item.Click += (_, _) => Dispatcher.Invoke(() => OpenRuleEditor(snapshot));
-            recent.DropDownItems.Add(item);
-        }
-
-        if (recent.DropDownItems.Count == 0)
-        {
-            recent.DropDownItems.Add(new Forms.ToolStripMenuItem("없음") { Enabled = false });
-        }
-
-        menu.Items.Add(recent);
-        menu.Items.Add(new Forms.ToolStripSeparator());
-
-        var exit = new Forms.ToolStripMenuItem("종료");
-        exit.Click += (_, _) => Dispatcher.Invoke(ExitApplication);
-        menu.Items.Add(exit);
-
-        return menu;
+            StatusText = statusText,
+            StatusDescription = description,
+            TodayCleanedCount = cleanedToday,
+            ActiveRuleCount = Rules.Count(rule => rule.Enabled),
+            IsPaused = isPaused,
+            IsOff = isOff,
+            RecentWindows = RecentWindows.Take(5).ToList()
+        };
     }
 
-    private static Icon LoadTrayIcon()
+    private string CreateTrayToolTip()
+    {
+        var snapshot = CreateTrayPopoverSnapshot();
+        return $"{Branding.AppDisplayName} - {snapshot.StatusText}, 오늘 {snapshot.TodayCleanedCount}건";
+    }
+
+    private void CloseTrayPopup()
+    {
+        _trayIcon?.CloseTrayPopup();
+    }
+
+    private static ImageSource LoadTrayIconSource()
     {
         try
         {
-            return Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? string.Empty) ?? SystemIcons.Application;
+            using var icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? string.Empty);
+            if (icon is not null)
+            {
+                var source = Imaging.CreateBitmapSourceFromHIcon(
+                    icon.Handle,
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromEmptyOptions());
+                source.Freeze();
+                return source;
+            }
         }
         catch
         {
-            return SystemIcons.Application;
         }
+
+        var pixels = new byte[16 * 16 * 4];
+        for (var i = 0; i < pixels.Length; i += 4)
+        {
+            pixels[i] = 0xD3;
+            pixels[i + 1] = 0x7D;
+            pixels[i + 2] = 0x2F;
+            pixels[i + 3] = 0xFF;
+        }
+
+        var fallback = BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgra32, null, pixels, 16 * 4);
+        fallback.Freeze();
+        return fallback;
     }
 
     private void ExitApplication()
     {
+        if (_mainWindow is not null && !_mainWindow.ConfirmDiscardEditorChanges())
+        {
+            return;
+        }
+
         if (_mainWindow is not null)
         {
             _mainWindow.AllowClose = true;
