@@ -20,7 +20,7 @@
 배포 폴더가 있는 경우 아래 파일을 실행합니다.
 
 ```powershell
-.\dist\불쑥창닫개\불쑥창닫개.exe
+.\artifacts\publish\win-x64\불쑥창닫개.exe
 ```
 
 처음 실행하면 메인 창과 트레이 아이콘이 표시됩니다. 창을 닫아도 앱은 트레이에 남아 계속 감시합니다. 완전히 종료하려면 트레이 메뉴에서 `종료`를 선택합니다.
@@ -79,20 +79,26 @@ dotnet run
 
 ## 배포 빌드
 
-현재 `dist\불쑥창닫개`와 같은 형태의 `win-x64` self-contained single-file 배포 폴더를 만들려면:
+`win-x64` self-contained single-file 배포 폴더를 만들려면:
 
 ```powershell
-.\.dotnet\dotnet.exe publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=false -o .\dist\불쑥창닫개
+.\scripts\Publish.ps1
 ```
 
-시스템 `dotnet`을 사용하는 경우:
+산출물은 아래 경로에 생성됩니다.
+
+```text
+artifacts\publish\win-x64
+```
+
+휴대용 zip 패키지는 아래 명령으로 만듭니다.
 
 ```powershell
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=false -o .\dist\불쑥창닫개
+.\scripts\Package-Zip.ps1
 ```
 
-WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
+zip 파일은 `artifacts\release\WindowFilterTray-win-x64-v1.0.0.zip` 형식으로 생성됩니다. 스크립트는 저장소의 `.dotnet\dotnet.exe`가 있으면 우선 사용하고, 없으면 시스템 `dotnet`을 사용합니다. WPF 네이티브 DLL은 실행 파일 옆에 함께 배치됩니다.
 
 ## 디자인 자료
 
-`dist\디자인` 폴더는 Claude 목업과 디자인 참고 산출물입니다. 실제 배포 패키지에는 포함하지 않는 개발 참고 자료입니다.
+`dist\디자인` 폴더는 Claude 목업과 디자인 참고 산출물입니다. `artifacts` 배포 패키지에는 포함하지 않는 개발 참고 자료입니다.

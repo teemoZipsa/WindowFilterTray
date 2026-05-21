@@ -5,6 +5,7 @@
 bin/
 obj/
 dist/
+artifacts/
 
 .dotnet/
 dotnet-install.ps1
