@@ -60,6 +60,46 @@ public sealed class WindowInspector
             : null;
     }
 
+    public WindowSnapshot? CaptureFromPointExcluding(int x, int y, IntPtr excludedHwnd)
+    {
+        var point = new POINT(x, y);
+        IntPtr best = IntPtr.Zero;
+        NativeMethods.EnumWindows((hwnd, _) =>
+        {
+            if (hwnd == IntPtr.Zero || hwnd == excludedHwnd)
+            {
+                return true;
+            }
+
+            var root = NativeMethods.GetAncestor(hwnd, NativeMethods.GA_ROOT);
+            if (root != IntPtr.Zero && root == excludedHwnd)
+            {
+                return true;
+            }
+
+            if (!NativeMethods.IsWindowVisible(hwnd) || !NativeMethods.GetWindowRect(hwnd, out var rect))
+            {
+                return true;
+            }
+
+            var windowRect = new WindowRect(rect.Left, rect.Top, rect.Right, rect.Bottom);
+            if (windowRect.Width <= 0 || windowRect.Height <= 0)
+            {
+                return true;
+            }
+
+            if (point.X < rect.Left || point.X >= rect.Right || point.Y < rect.Top || point.Y >= rect.Bottom)
+            {
+                return true;
+            }
+
+            best = hwnd;
+            return false;
+        }, IntPtr.Zero);
+
+        return best == IntPtr.Zero ? null : Capture(best);
+    }
+
     private static string GetWindowText(IntPtr hwnd)
     {
         var builder = new StringBuilder(512);

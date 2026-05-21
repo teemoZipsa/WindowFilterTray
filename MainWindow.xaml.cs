@@ -151,6 +151,17 @@ public partial class MainWindow : Window
         DiscardEditorChanges(RuleEditorReturnTarget.Recent);
     }
 
+    public void ShowLogsSection()
+    {
+        if (!ConfirmDiscardEditorChanges())
+        {
+            return;
+        }
+
+        ShowDashboardContent();
+        NavigateToReturnTarget(RuleEditorReturnTarget.Logs);
+    }
+
     public void OpenRuleEditor(WindowSnapshot snapshot)
     {
         if (!ConfirmDiscardEditorChanges())

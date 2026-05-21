@@ -324,11 +324,18 @@ public partial class App : System.Windows.Application
 
         _toastWindow = new ActionToastWindow(
             snapshot.Title,
+            snapshot.ProcessName,
             action,
             undo,
-            ShowMainWindow);
+            ShowLogsSection);
         _toastWindow.Closed += (_, _) => _toastWindow = null;
         _toastWindow.Show();
+    }
+
+    private void ShowLogsSection()
+    {
+        ShowMainWindow();
+        _mainWindow?.ShowLogsSection();
     }
 
     private void AddRecentWindow(WindowSnapshot snapshot)

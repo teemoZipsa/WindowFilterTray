@@ -33,6 +33,8 @@ internal static class NativeMethods
         uint dwEventThread,
         uint dwmsEventTime);
 
+    public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
+
     [DllImport("user32.dll")]
     public static extern IntPtr SetWinEventHook(
         uint eventMin,
@@ -49,6 +51,10 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
