@@ -15,3 +15,8 @@ dotnet-install.log
 *.suo
 *.tmp
 *.log
+
+# Local generated files (regenerable; keep source and test fixtures)
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini
